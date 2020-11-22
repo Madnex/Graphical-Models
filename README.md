@@ -9,7 +9,7 @@
 * Validate paper e.g. 
 * confirm that connections in groups way more frequent
 * how fast can information be spread? 
-* centrality of the queen? or other ants (gropus)
+* centrality of the queen? or other ants (groups)
 * Do any attributes indicate a certain position?
 
 ## Descriptive Statistics of the network

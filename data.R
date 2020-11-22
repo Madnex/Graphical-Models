@@ -1,28 +1,17 @@
 library(curl)
 library(igraph)
 
-# Download the data files for colony 1:
+source("helpers.R")
 
-for(i in 1:41){
-  selection <- paste("col1_day", formatC(i, width = 2, flag = 0), sep = "")
-  filename <- paste("https://raw.githubusercontent.com/bansallab/asnr/master/Networks/Insecta/ants_proximity_weighted/ant_mersch_", selection, "_attribute.graphml"
-                    , sep = "")
-  dest <- paste("Data/", selection, ".graphml", sep = "")
-  curl_download(filename, dest)
-}
+g <- get_graph()
 
-
-g <- read_graph(dest, format = "graphml")
-g
 plot(g)
 vs <- V(g)
 vcount(g)
 V(g)
 graphs <- list()
 for(i in 1:41){
-  selection <- paste("col1_day", formatC(i, width = 2, flag = 0), sep = "")
-  dest <- paste("Data/", selection, ".graphml", sep = "")
-  g <- read_graph(dest, format = "graphml")
+  g <- get_graph(colony = 1, day = i)
   V(g)$name <- V(g)$id
   graphs[[i]] <- g
 }
