@@ -2,7 +2,7 @@
 source("helpers.R")
 
 
-g <- get_graph(colony=1, day=4)
+g <- get_graph(colony=1, day=17)
 
 # Connected yes/no
 is_connected(g)
@@ -10,6 +10,12 @@ is_connected(g)
 # Edge density 
 edge_density(g)
 degree_distribution(g)
+
+diameter(g)
+
+average.path.length(g)
+
+hist(degree(g))
 
 
 ########################################################
@@ -29,6 +35,22 @@ lapply(groups, is_connected)
 
 lapply(groups, function(u) plot(degree_distribution(u)))
 
-cl_n <- cliques(nurses)
-membership(nurses)
+lapply(groups, average.path.length)
+
+lapply(groups, diameter)
+
+
+library(ggplot2)
+betw <- betweenness(g)
+betw <- betw[order(betw, decreasing = TRUE)]
+betw <- data.frame(betw)
+betw<-data.frame(name=rownames(betw),value=betw$betw)
+betw$group <- as.factor(sapply(betw$name, function(u) V(g)$group[V(g)$name == u]))
+index<-10000:nrow(betw)+10000
+for (i in 1:nrow(betw)){
+  betw$name[i]<-paste(index[i],betw$name[i])
+}
+
+ggplot(betw) + aes(y=value, x=name, reorder(name, value), fill=group) + geom_col()
+
 

@@ -32,4 +32,26 @@
 * I did this
 
 
+# To-Do
+
+* General analysis # Andrei
+* Per group analysis # Jan
+
+Analysis:
+* histogram of degrees
+* connectivity, components
+* degree_distribution
+* average.path.length
+* centrality measures
+* diameter
+* global clustering coefficient
+
+* Table to compare
+
+* kmeans-clustering # Andrei
+* Plot # Jan
+* properties
+
+
+
 
