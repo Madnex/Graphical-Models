@@ -12,7 +12,6 @@ V(g)
 graphs <- list()
 for(i in 1:41){
   g <- get_graph(colony = 1, day = i)
-  V(g)$name <- V(g)$id
   graphs[[i]] <- g
 }
 
