@@ -4,14 +4,58 @@ author: "Jan Lennartz & Andrei Chirita"
 date: "11/22/2020"
 output: pdf_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r,echo=FALSE,results='hide'}
+library(curl)
+library(igraph)
+source("helpers.R")
 ```
+\newpage
+\tableofcontents
+\newpage
 
 # Introduction
 
-Here goes the introduction..
+Ant colonies have a complex and fascinating social structure that may bring answers to a multitude of scientific questions. Usually the nest are organized in a stratified manner with a queen at the center and numerous workers doing tasks needed for the upkeep of the colony. The study for which the data we worked on was collected sought to understand the social structure of *Camponotus fellah* ants, what are the groups inside the colonies and what factors define them. 
+
+## The data
+
+The original data of the study consist of more than 9 million observed interactions between ants collected for 41 days from ants belonging to 6 colonies. For our project we decided to work on ..... 
+
+### Preliminary data exploration
+
+In the following section we will show how the data is structured for a single colony in a single day (namely day 17, colony 1). We will start by loading the data using the get_graph function that we built previously.
+
+```{r}
+g <- get_graph(colony = 1, day = 17)
+```
+Next we will have a look at the vertices of the graph, as can be seen there are 99 of them in this graph.
+
+```{r}
+V(g)
+```
+Next we displayed the number of edges, as can be seen there are over 3300 edges. Thus in day 17, for the first colony there were over 3342 interactions between 99 ants.
+```{r}
+E(g)
+```
+```{r}
+str(vertex.attributes(g))
+```
+Each vertex has also a set of attributes like:
+
+* Several attributes that are useful for understanding the interactions of the studied
+
+* Attributes that register the visits of the ant to important places of the colony (like the brood or the nest entrance)
+
+* The groups fitted by the authors of the study
+
+* The age of the ant (measured in days)
+
+* The body size of the ant
+
+
+## The original paper
+
+The original paper was written by: Danielle P. Mersch, Alessandro Crespi and Laurent Keller and explores questions related how can we separate ant colonies into groups and what makes ants change the group they belong to. During their study they found 3 main groups based on the interactions between ants and concluded that age is the main factor that determines ants to change the group they are part of. All colonies studied had 4-years old queens and between 122 and 192 workers per colony. Each ant was marked and followed individually and an interaction between two ants were defined by the fact that "the front end of one ant was located within thetrapezoidal shape representing the other ant".
 
 ## Our questions
 
