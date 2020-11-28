@@ -46,3 +46,5 @@ plot(g, layout.grid(g), vertex.lables = NULL)
 edge.attributes(g)
 vertex.attributes(g)
 
+
+

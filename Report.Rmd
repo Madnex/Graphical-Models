@@ -15,4 +15,6 @@ Here goes the introduction..
 
 ## Our questions
 
-Our question...
+The goal of this work is to conduct the given data set w.r.t. various aspects. Furthermore, a validation of the key results of the original paper is carried out. For this a sample colony is chosen on a given day. On this network the analysis is to be done. Certain properties will be evaluated over multiple days when required.
+
+We will first explore the network in a descriptive manner. This includes characteristics like degree distribution, density, diameter and more. In the second step we have a closer look at the groups. First, we validate that the three groups are a valid proposal for the given network. This is done by running a clustering algorithm on the network to identify the groups which will be compared to the labeled groupings. Second, we investigate how frequently ants communicate within groups and compare this to the level of communication between groups. We answer the question how fast information can be spread in the network and compare this to the result of the paper. Additionally, we calculate the centrality of specific ant or groups (e.g. the queen) w.r.t. different measures. Furthermore, we review several properties of the ants and their correlation with the groups (e.g. age, size).
