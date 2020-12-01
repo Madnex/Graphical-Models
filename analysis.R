@@ -58,3 +58,26 @@ for (i in 1:nrow(betw)){
 ggplot(betw) + aes(y=value, x=name, reorder(name, value), fill=group) + geom_col()
 
 
+G <- g
+G_Grouped = G
+
+## Add edges with high weight between all nodes in the same group
+for(i in unique(V(G)$group)) {
+  GroupV = which(V(G)$group == i)
+  G_Grouped = add_edges(G_Grouped, combn(GroupV, 2), attr=list(weight=10))
+} 
+
+## Now create a layout based on G_Grouped
+set.seed(123)
+LO = layout_with_fr(G_Grouped)
+
+V(G)$group <- as.factor(V(G)$group)
+## Use the layout to plot the original graph
+plot(G, vertex.label = NA, vertex.color=V(G)$group, layout=LO)
+
+g_plot <- g
+V(g_plot)$group <- as.factor(V(g_plot)$group)
+plot(g_plot, vertex.label = NA, vertex.color=V(g_plot)$group)
+
+bridges <- crossing(membership = V(g)$group, graph = network)
+
