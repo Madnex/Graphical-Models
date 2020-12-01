@@ -140,3 +140,9 @@ pagr <- lapply(groups, page.rank)
 pagr <- lapply(pagr, function(u) u$vector[order(u$vector, decreasing = TRUE)])
 lapply(names(pagr), function(u) barplot(pagr[[u]], main = paste("Pagerank", u)))
 ```
+
+### Clustering Coefficient
+Very similar results again for the clustering coefficient. All groups are very highly connected.
+```{r}
+lapply(groups, transitivity)
+```
