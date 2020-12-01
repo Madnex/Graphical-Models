@@ -1,7 +1,7 @@
 # 
 source("helpers.R")
 
-
+# Fixed for colony 1 and day 17
 g <- get_graph(colony=1, day=17)
 
 # Connected yes/no
@@ -25,7 +25,7 @@ foragers <- induced_subgraph(g, which(V(g)$group=="F"))
 nurses <- induced_subgraph(g, which(V(g)$group=="N"))
 cleaners <- induced_subgraph(g, which(V(g)$group=="C"))
 
-groups <- list(foragers=foragers, nurses=nurses, cleaners=cleaners)
+groups <- list(Foragers=foragers, Nurses=nurses, Cleaners=cleaners)
 
 lapply(groups, edge_density)
 
@@ -33,11 +33,15 @@ lapply(groups, plot)
 
 lapply(groups, is_connected)
 
-lapply(groups, function(u) plot(degree_distribution(u)))
+lapply(groups, function(u) plot(degree_distribution(u), xlab = "Degree", ylab = "Density"))
 
 lapply(groups, average.path.length)
 
 lapply(groups, diameter)
+
+lapply(names(groups), function(u) hist(degree(groups[[u]]), freq = FALSE, 
+                                       main = paste("Histogram of", u), xlab = "Degree"))
+
 
 
 library(ggplot2)

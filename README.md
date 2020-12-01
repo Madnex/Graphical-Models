@@ -42,8 +42,8 @@ Analysis:
 * connectivity, components
 * degree_distribution
 * average.path.length
-* centrality measures
 * diameter
+* centrality measures
 * global clustering coefficient
 
 * Table to compare

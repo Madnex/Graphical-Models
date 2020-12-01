@@ -62,3 +62,81 @@ The original paper was written by: Danielle P. Mersch, Alessandro Crespi and Lau
 The goal of this work is to conduct the given data set w.r.t. various aspects. Furthermore, a validation of the key results of the original paper is carried out. For this a sample colony is chosen on a given day. On this network the analysis is to be done. Certain properties will be evaluated over multiple days when required.
 
 We will first explore the network in a descriptive manner. This includes characteristics like degree distribution, density, diameter and more. In the second step we have a closer look at the groups. First, we validate that the three groups are a valid proposal for the given network. This is done by running a clustering algorithm on the network to identify the groups which will be compared to the labeled groupings. Second, we investigate how frequently ants communicate within groups and compare this to the level of communication between groups. We answer the question how fast information can be spread in the network and compare this to the result of the paper. Additionally, we calculate the centrality of specific ant or groups (e.g. the queen) w.r.t. different measures. Furthermore, we review several properties of the ants and their correlation with the groups (e.g. age, size).
+
+#  Descriptive Statistics of the network
+
+## By group
+
+Before looking at the following summary statistics per group it is important to know about the size of each group. There are 50 ants in the group foragers, 27 cleaners and 18 are nurses. This means the following results need to be considered under the fact of this inequal distribution of group members.
+
+### Histogram and Density
+
+The foragers have a rather wider spread of degrees compared to the other two groups. Most of them have a degree greater than 40. The other two groups are distributed very homogeneously. It is notable though that there is a hierarchy of degrees starting from the low degree group of nurses to the midrange group of cleaners over to the higher degree group of foragers.
+
+```{r echo=FALSE}
+lapply(names(groups), function(u) hist(degree(groups[[u]]), freq = FALSE, 
+                                       main = paste("Histogram of", u), xlab = "Degree"))
+```
+
+```{r}
+lapply(groups, function(u) plot(degree_distribution(u), xlab = "Degree", ylab = "Density"))
+```
+
+
+### Connectivity and Components
+
+All separate groups are connected and thus, each of them form a big component.
+```{r}
+lapply(groups, is_connected)
+```
+
+
+### Average Path Length and Diameter
+
+The average path length can be an indicator of how connected a network is. Here the foragers and the cleaners have a similar average path length of around 1.12. In comparison the nurses have an average path length of 1.09, a bit smaller. All three groups are very well connected because most ants can reach any other ant of the same group in less than 2 steps. The diameter is the longest shortest path in a network and differs quite a bit in this network. The foragers have a diameter of 11, compared to the nurses with 7 and the cleaners with 4. This might be an indicator of a lower connection level in the group of the foragers. There exists at least one ant who has to go over 11 other ants in order to connect with another specially chosen ant. This is quite extreme considering the average path length is 1.12 in this group.
+```{r}
+lapply(groups, average.path.length)
+lapply(groups, diameter)
+```
+### Centrality Measures
+
+Degree centrality is very homogeneous. This is due to the equal distribution of degrees. It is not very informative for us.
+
+```{r}
+deg <- lapply(groups, centralization.degree)
+deg <- lapply(deg, function(u) u$res[order(u$res, decreasing = TRUE)])
+lapply(names(deg), function(u) barplot(deg[[u]], main = paste("Degree centrality", u)))
+```
+
+
+
+Closeness centrality: Similar picture. Most of the ants are close to many other nodes due to the high connectivity.
+
+```{r}
+clos <- lapply(groups, centralization.closeness)
+clos <- lapply(clos, function(u) u$res[order(u$res, decreasing = TRUE)])
+lapply(names(clos), function(u) barplot(clos[[u]], main = paste("Closeness centrality", u)))
+```
+
+Betweenness centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. 
+
+```{r}
+betw <- lapply(groups, centralization.betweenness)
+betw <- lapply(betw, function(u) u$res[order(u$res, decreasing = TRUE)])
+lapply(names(betw), function(u) barplot(betw[[u]], main = paste("Betweenness centrality", u)))
+```
+
+Eigenvalue centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. 
+
+```{r}
+eig <- lapply(groups, centralization.evcent)
+eig <- lapply(eig, function(u) u$vector[order(u$vector, decreasing = TRUE)])
+lapply(names(eig), function(u) barplot(eig[[u]], main = paste("Eigenvalue centrality", u)))
+```
+
+Pagerank: Here we can see that the foragers have a few ants who are very important w.r.t to this centrality measure. This could indicate that these ants are consulted by many other ants who themselves are consulted by many ants. 
+```{r}
+pagr <- lapply(groups, page.rank)
+pagr <- lapply(pagr, function(u) u$vector[order(u$vector, decreasing = TRUE)])
+lapply(names(pagr), function(u) barplot(pagr[[u]], main = paste("Pagerank", u)))
+```
