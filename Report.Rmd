@@ -7,6 +7,7 @@ output: pdf_document
 ```{r,echo=FALSE,results='hide'}
 library(curl)
 library(igraph)
+library(ggplot2)
 source("helpers.R")
 ```
 \newpage
@@ -31,7 +32,7 @@ g <- get_graph(colony = 1, day = 17)
 Next we will have a look at the vertices of the graph, as can be seen there are 99 of them in this graph.
 
 ```{r}
-V(g)
+vcount(g)
 ```
 Next we displayed the number of edges, as can be seen there are over 3300 edges. Thus in day 17, for the first colony there were over 3342 interactions between 99 ants.
 ```{r}
@@ -77,9 +78,70 @@ We will first explore the network in a descriptive manner. This includes charact
 
 #  Descriptive Statistics of the network
 
+As we noted above the data we are going to use for our analysis refers to the movements of the ants of the first colony in day 17 of the study. Thus the graph has 99 vertices and 3342 edges. We must also note that the graph is connected.
+
+## For the general network
+
+```{r,echo=FALSE,results='hide'}
+g <- get_graph(colony = 1, day = 17)
+```
+
+```{r,echo=FALSE,results='hide'}
+degrees<-data.frame(degree=degree(g))
+ggplot(degrees)+aes(x=degree)+geom_histogram(binwidth = 10)+ggtitle("Histogram of the degrees")
+```
+```{r,echo=FALSE}
+print("Distribution of the degrees: ")
+paste("[0-30] : ",length(degrees[degrees[,1]<=30,]))
+paste("(30-60] : ",length(degrees[degrees[,1]<=60,]))
+paste("(60-90] : ",length(degrees[degrees[,1]<=90&degrees[,1]>60,]))
+paste(">90 : ",length(degrees[degrees[,1]>90,]))
+paste("min : ",min(degrees))
+paste("max : ",max(degrees))
+```
+
+Most nodes have a rather higher degree (between 60 and 90) and there are some nodes with a lower value of the degree, thus we can infer that most ants had a higher number of contacts while some ants had less frequent meetings. There is a small number of nodes that has a very high degree (90 or over 90), they represent ants that had a lot of encounters. We must also note that no ant had less than 33 encounters.
+
+### Average Path Length and Diameter
+
+The average path length can show how connected the analyzed network is.In the case of our graph the value is aproximatively 1,31. Another measure of the connectivity of the graph is its diameter (the maximum of the series of shortest paths), the value of the indicator is: 5
+```{r}
+average.path.length(g)
+diameter(g)
+```
+
+### Measures of Centrality
+
+```{r}
+deg <- centralization.degree(g)
+deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),deg=deg$res[order(deg$res, decreasing = TRUE)])
+ggplot(deg)+aes(y=deg,x=index)+geom_col()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+?geom_col
+```
+
+```{r}
+deg <- centralization.closeness(g)
+deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),closeness_centrality=deg$res[order(deg$res, decreasing = TRUE)])
+ggplot(deg)+aes(y=closeness_centrality,x=index)+geom_col()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+```{r}
+deg <- centralization.betweenness(g)
+deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),betweenes_centrality=deg$res[order(deg$res, decreasing = TRUE)])
+ggplot(deg)+aes(y=betweenes_centrality,x=index)+geom_col()+
+  theme(axis.title.x = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
 ## By group
 
-Before looking at the following summary statistics per group it is important to know about the size of each group. There are 50 ants in the group foragers, 27 cleaners and 18 are nurses. This means the following results need to be considered under the fact of this inequal distribution of group members.
+Before looking at the following summary statistics per group it is important to know about the size of each group. There are 50 ants in the group foragers, 27 cleaners and 18 are nurses. This means the following results need to be considered under the fact of this unequal distribution of group members.
 
 ### Histogram and Density
 
@@ -105,7 +167,7 @@ lapply(groups, is_connected)
 
 ### Average Path Length and Diameter
 
-The average path length can be an indicator of how connected a network is. Here the foragers and the cleaners have a similar average path length of around 1.12. In comparison the nurses have an average path length of 1.09, a bit smaller. All three groups are very well connected because most ants can reach any other ant of the same group in less than 2 steps. The diameter is the longest shortest path in a network and differs quite a bit in this network. The foragers have a diameter of 11, compared to the nurses with 7 and the cleaners with 4. This might be an indicator of a lower connection level in the group of the foragers. There exists at least one ant who has to go over 11 other ants in order to connect with another specially chosen ant. This is quite extreme considering the average path length is 1.12 in this group.
+The average path length can be an indicator of how connected a network is. Here the foragers and the cleaners have a similar average path length of around 1.12. In comparison the nurses have an average path length of 1.09, a bit smaller. All three groups are very well connected because most ants can reach any other ant of the same group in less than 2 steps. Moreover the groups have smaller average path lengths than the overall graph which suggests that the proposed grouping does indeed lead to more coherent groups. The diameter is the longest shortest path in a network and differs quite a bit in this network. The foragers have a diameter of 11, compared to the nurses with 7 and the cleaners with 4. This might be an indicator of a lower connection level in the group of the foragers. There exists at least one ant who has to go over 11 other ants in order to connect with another specially chosen ant. This is quite extreme considering the average path length is 1.12 in this group.
 ```{r}
 lapply(groups, average.path.length)
 lapply(groups, diameter)
