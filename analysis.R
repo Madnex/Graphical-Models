@@ -9,7 +9,7 @@ is_connected(g)
 
 # Edge density 
 edge_density(g)
-degree_distribution(g)
+plot(degree_distribution(g))
 
 
 ########################################################
@@ -32,3 +32,12 @@ lapply(groups, function(u) plot(degree_distribution(u)))
 cl_n <- cliques(nurses)
 membership(nurses)
 
+betw <- betweenness(g)
+betw <- betw[order(betw, decreasing = TRUE)]
+library(ggplot2)
+
+
+V(g)$group
+betw <- data.frame(betw)
+betw<-data.frame(name=rownames(betw),value=betw$betw)
+ggplot(betw) + aes(y=value,x=name) + geom_col()
