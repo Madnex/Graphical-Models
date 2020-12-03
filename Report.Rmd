@@ -35,7 +35,7 @@ V(g)
 ```
 Next we displayed the number of edges, as can be seen there are over 3300 edges. Thus in day 17, for the first colony there were over 3342 interactions between 99 ants.
 ```{r}
-E(g)
+ecount(g)
 ```
 ```{r}
 str(vertex.attributes(g))
@@ -52,7 +52,19 @@ Each vertex has also a set of attributes like:
 
 * The body size of the ant
 
+```{r,echo=FALSE}
+foragers <- induced_subgraph(g, which(V(g)$group=="F"))
+nurses <- induced_subgraph(g, which(V(g)$group=="N"))
+cleaners <- induced_subgraph(g, which(V(g)$group=="C"))
 
+groups <- list(Foragers=foragers, Nurses=nurses, Cleaners=cleaners)
+
+par(mfrow=c(1,3))
+
+lapply(seq_along(groups), function(u){plot(groups[[u]],main = paste(names(groups)[u]),vertex.label=NA)})
+```
+
+As we can see the foragers and cleaners groups contain more ants than the nurses group and they also contains more interactions.
 ## The original paper
 
 The original paper was written by: Danielle P. Mersch, Alessandro Crespi and Laurent Keller and explores questions related how can we separate ant colonies into groups and what makes ants change the group they belong to. During their study they found 3 main groups based on the interactions between ants and concluded that age is the main factor that determines ants to change the group they are part of. All colonies studied had 4-years old queens and between 122 and 192 workers per colony. Each ant was marked and followed individually and an interaction between two ants were defined by the fact that "the front end of one ant was located within thetrapezoidal shape representing the other ant".
