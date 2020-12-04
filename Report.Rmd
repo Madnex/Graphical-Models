@@ -115,7 +115,7 @@ diameter(g)
 ```{r}
 deg <- centralization.degree(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),deg=deg$res[order(deg$res, decreasing = TRUE)])
-ggplot(deg)+aes(y=deg,x=index)+geom_col()+
+ggplot(deg)+aes(y=deg,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
@@ -125,7 +125,7 @@ ggplot(deg)+aes(y=deg,x=index)+geom_col()+
 ```{r}
 deg <- centralization.closeness(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),closeness_centrality=deg$res[order(deg$res, decreasing = TRUE)])
-ggplot(deg)+aes(y=closeness_centrality,x=index)+geom_col()+
+ggplot(deg)+aes(y=closeness_centrality,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
@@ -134,11 +134,42 @@ ggplot(deg)+aes(y=closeness_centrality,x=index)+geom_col()+
 ```{r}
 deg <- centralization.betweenness(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),betweenes_centrality=deg$res[order(deg$res, decreasing = TRUE)])
-ggplot(deg)+aes(y=betweenes_centrality,x=index)+geom_col()+
+ggplot(deg)+aes(y=betweenes_centrality,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
 ```
+In regard to betweeness centrality we can observe that one ant ranks far over the others, thus we can conclude that there is one ant that has a very central role in the network a conclusion we couldn't draw based on the other measures of centrality.
+
+
+
+```{r}
+deg <- centralization.evcent(g)
+deg <- data.frame(index=factor(1:length(deg$vector),levels=1:length(deg$vector)),eigenvalue_centrality=deg$vector[order(deg$vector, decreasing = TRUE)])
+ggplot(deg)+aes(y=eigenvalue_centrality,x=index)+geom_col(width=1)+
+  theme(axis.title.x = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+The eigenvalue centrality presents a decreasing structure although it is a smoother decrease compared to the one of the betweenes centrality, in this case we can find no node that is much more "central" that the others.
+
+```{r}
+deg <- page.rank(g)
+deg <- data.frame(index=factor(1:length(deg$vector),levels=1:length(deg$vector)),page_rank=deg$vector[order(deg$vector, decreasing = TRUE)])
+ggplot(deg)+aes(y=page_rank,x=index)+geom_col(width=1)+
+  theme(axis.title.x = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+The page rank of the nodes of the graph presents a structure in which there are several dominating nodes that have a much higher rank than the others.
+
+### Clustering Coefficient
+
+```{r}
+transitivity(g)
+```
+The clustering coefficient of the whole graph is 0.77, we will compare it to those of the groups in the next sections.
+
 ## By group
 
 Before looking at the following summary statistics per group it is important to know about the size of each group. There are 50 ants in the group foragers, 27 cleaners and 18 are nurses. This means the following results need to be considered under the fact of this unequal distribution of group members.
@@ -180,6 +211,9 @@ Degree centrality is very homogeneous. This is due to the equal distribution of 
 deg <- lapply(groups, centralization.degree)
 deg <- lapply(deg, function(u) u$res[order(u$res, decreasing = TRUE)])
 lapply(names(deg), function(u) barplot(deg[[u]], main = paste("Degree centrality", u)))
+deg_data<-lapply(1:3,function(u){deg[[u]]<-data.frame(degree=deg[[u]],group=names(deg)[u])})
+deg_data<-do.call(rbind,deg_data)
+ggplot(deg_data)+aes(group,degree)+geom_boxplot()
 ```
 
 
@@ -190,6 +224,9 @@ Closeness centrality: Similar picture. Most of the ants are close to many other 
 clos <- lapply(groups, centralization.closeness)
 clos <- lapply(clos, function(u) u$res[order(u$res, decreasing = TRUE)])
 lapply(names(clos), function(u) barplot(clos[[u]], main = paste("Closeness centrality", u)))
+clos_data<-lapply(1:3,function(u){clos[[u]]<-data.frame(closeness=clos[[u]],group=names(clos)[u])})
+clos_data<-do.call(rbind,clos_data)
+ggplot(clos_data)+aes(group,closeness)+geom_boxplot()
 ```
 
 Betweenness centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. 
