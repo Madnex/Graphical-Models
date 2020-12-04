@@ -8,6 +8,7 @@ output: pdf_document
 library(curl)
 library(igraph)
 library(ggplot2)
+library(stats)
 source("helpers.R")
 ```
 \newpage
@@ -257,3 +258,84 @@ Very similar results again for the clustering coefficient. All groups are very h
 ```{r}
 lapply(groups, transitivity)
 ```
+
+## K-means check
+
+### Preparing the data
+```{r}
+atributes<-vertex.attributes(g)
+str(atributes)
+to_cluster<-data.frame(
+  id=atributes$name,
+  group=atributes$group,
+  i_queen=atributes$nb_interaction_queen,
+  i_forag=atributes$nb_interaction_foragers,
+  i_clean=atributes$nb_interaction_cleaners,
+  i_nurse=atributes$nb_interaction_nurses,
+  v_rubbish=atributes$visits_to_rubbishpile,
+  v_entr=atributes$visits_to_nest_entrance,
+  v_brood=atributes$visits_to_brood,
+  foraging=atributes$nb_foraging_events,
+  age=atributes$`age(days)`,
+  size=atributes$body_size
+)
+to_cluster<-na.omit(to_cluster)
+str(to_cluster)
+nrow(to_cluster)
+```
+
+```{r}
+to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
+models<-lapply(1:10,function(i){kmeans(to_cluster2,i)})
+sum_withinn<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$tot.withinss}))
+sum_withinn<-data.frame(index=1:nrow(sum_withinn),name=rep("withiness",nrow(sum_withinn)),value=sum_withinn)
+sum_between<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$betweenss}))
+sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_between)),value=sum_between)
+#sum_total<-data.frame(index=1:nrow(sum_between),
+#                   name=rep("total error",nrow(sum_between)),
+#                   value=sum_between$value+sum_withinn$value)
+to_plot<-rbind(sum_withinn,sum_between)
+ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()
+```
+
+```{r}
+model3<-models[[3]]
+to_cluster3<-data.frame(to_cluster,found_labels=model3$cluster)
+table(to_cluster3$group,to_cluster3$found_labels)
+```
+From the results above we may infer that the foragers group may have been misclasified and that there are a lot of foragers that present similar behaviour to that of the cleaners.
+```{r}
+model4<-models[[4]]
+to_cluster4<-data.frame(to_cluster,found_labels=model4$cluster)
+table(to_cluster4$group,to_cluster4$found_labels)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
