@@ -54,6 +54,28 @@ Each vertex has also a set of attributes like:
 
 * The body size of the ant
 
+```{r, echo=FALSE}
+library(scales)
+G <- g
+G_Grouped = G
+
+## Add edges with high weight between all nodes in the same group
+for(i in unique(V(G)$group)) {
+  GroupV = which(V(G)$group == i)
+  G_Grouped = add_edges(G_Grouped, combn(GroupV, 2), attr=list(weight=10))
+} 
+
+## Now create a layout based on G_Grouped
+set.seed(123)
+LO = layout_with_fr(G_Grouped)
+
+V(G)$group <- as.factor(V(G)$group)
+degs <- rescale(degree(G), c(0,1))
+## Use the layout to plot the original graph
+plot(G, vertex.label = NA, vertex.color=V(G)$group, layout=LO, vertex.size = degs * 13)
+legend('topleft',legend=c("NA", "Cleaners", "Foragers", "Nurses", "Queen"), col='black', pch=21, pt.bg=categorical_pal(5))
+```
+
 ```{r,echo=FALSE}
 foragers <- induced_subgraph(g, which(V(g)$group=="F"))
 nurses <- induced_subgraph(g, which(V(g)$group=="N"))
@@ -180,12 +202,14 @@ Before looking at the following summary statistics per group it is important to 
 The foragers have a rather wider spread of degrees compared to the other two groups. Most of them have a degree greater than 40. The other two groups are distributed very homogeneously. It is notable though that there is a hierarchy of degrees starting from the low degree group of nurses to the midrange group of cleaners over to the higher degree group of foragers.
 
 ```{r echo=FALSE}
-lapply(names(groups), function(u) hist(degree(groups[[u]]), freq = FALSE, 
+par(mfrow=c(1,3))
+tmp <- lapply(names(groups), function(u) hist(degree(groups[[u]]), freq = FALSE, 
                                        main = paste("Histogram of", u), xlab = "Degree"))
 ```
 
 ```{r}
-lapply(groups, function(u) plot(degree_distribution(u), xlab = "Degree", ylab = "Density"))
+par(mfrow=c(1,3))
+tmp <- lapply(groups, function(u) plot(degree_distribution(u), xlab = "Degree", ylab = "Density"))
 ```
 
 
@@ -209,9 +233,11 @@ lapply(groups, diameter)
 Degree centrality is very homogeneous. This is due to the equal distribution of degrees. It is not very informative for us.
 
 ```{r}
+par(mfrow=c(1,3))
 deg <- lapply(groups, centralization.degree)
 deg <- lapply(deg, function(u) u$res[order(u$res, decreasing = TRUE)])
-lapply(names(deg), function(u) barplot(deg[[u]], main = paste("Degree centrality", u)))
+tmp <- lapply(names(deg), function(u) barplot(deg[[u]], main = paste("Degree centrality", u)))
+
 deg_data<-lapply(1:3,function(u){deg[[u]]<-data.frame(degree=deg[[u]],group=names(deg)[u])})
 deg_data<-do.call(rbind,deg_data)
 ggplot(deg_data)+aes(group,degree)+geom_boxplot()
@@ -222,9 +248,10 @@ ggplot(deg_data)+aes(group,degree)+geom_boxplot()
 Closeness centrality: Similar picture. Most of the ants are close to many other nodes due to the high connectivity.
 
 ```{r}
+par(mfrow=c(1,3))
 clos <- lapply(groups, centralization.closeness)
 clos <- lapply(clos, function(u) u$res[order(u$res, decreasing = TRUE)])
-lapply(names(clos), function(u) barplot(clos[[u]], main = paste("Closeness centrality", u)))
+tmp <- lapply(names(clos), function(u) barplot(clos[[u]], main = paste("Closeness centrality", u)))
 clos_data<-lapply(1:3,function(u){clos[[u]]<-data.frame(closeness=clos[[u]],group=names(clos)[u])})
 clos_data<-do.call(rbind,clos_data)
 ggplot(clos_data)+aes(group,closeness)+geom_boxplot()
@@ -233,24 +260,27 @@ ggplot(clos_data)+aes(group,closeness)+geom_boxplot()
 Betweenness centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. 
 
 ```{r}
+par(mfrow=c(1,3))
 betw <- lapply(groups, centralization.betweenness)
 betw <- lapply(betw, function(u) u$res[order(u$res, decreasing = TRUE)])
-lapply(names(betw), function(u) barplot(betw[[u]], main = paste("Betweenness centrality", u)))
+tmp <- lapply(names(betw), function(u) barplot(betw[[u]], main = paste("Betweenness centrality", u)))
 ```
 
 Eigenvalue centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. 
 
 ```{r}
+par(mfrow=c(1,3))
 eig <- lapply(groups, centralization.evcent)
 eig <- lapply(eig, function(u) u$vector[order(u$vector, decreasing = TRUE)])
-lapply(names(eig), function(u) barplot(eig[[u]], main = paste("Eigenvalue centrality", u)))
+tmp <- lapply(names(eig), function(u) barplot(eig[[u]], main = paste("Eigenvalue centrality", u)))
 ```
 
 Pagerank: Here we can see that the foragers have a few ants who are very important w.r.t to this centrality measure. This could indicate that these ants are consulted by many other ants who themselves are consulted by many ants. 
 ```{r}
+par(mfrow=c(1,3))
 pagr <- lapply(groups, page.rank)
 pagr <- lapply(pagr, function(u) u$vector[order(u$vector, decreasing = TRUE)])
-lapply(names(pagr), function(u) barplot(pagr[[u]], main = paste("Pagerank", u)))
+tmp <- lapply(names(pagr), function(u) barplot(pagr[[u]], main = paste("Pagerank", u)))
 ```
 
 ### Clustering Coefficient

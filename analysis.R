@@ -58,6 +58,7 @@ for (i in 1:nrow(betw)){
 ggplot(betw) + aes(y=value, x=name, reorder(name, value), fill=group) + geom_col()
 
 
+library(scales)
 G <- g
 G_Grouped = G
 
@@ -72,12 +73,17 @@ set.seed(123)
 LO = layout_with_fr(G_Grouped)
 
 V(G)$group <- as.factor(V(G)$group)
+degs <- rescale(degree(g_plot), c(0,1))
 ## Use the layout to plot the original graph
-plot(G, vertex.label = NA, vertex.color=V(G)$group, layout=LO)
+plot(G, vertex.label = NA, vertex.color=V(G)$group, layout=LO, vertex.size = degs * 13)
+legend('topleft',legend=c("NA", "Cleaners", "Foragers", "Nurses", "Queen"), col='black', pch=21, pt.bg=categorical_pal(5))
 
-g_plot <- g
-V(g_plot)$group <- as.factor(V(g_plot)$group)
-plot(g_plot, vertex.label = NA, vertex.color=V(g_plot)$group)
+plot(g_plot, vertex.label = NA, vertex.color=V(g_plot)$group, vertex.size = degs * 13)
+
+
+
+
+
 
 bridges <- crossing(membership = V(g)$group, graph = network)
 
