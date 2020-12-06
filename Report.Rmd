@@ -10,6 +10,7 @@ library(igraph)
 library(ggplot2)
 library(stats)
 source("helpers.R")
+library(stargazer)
 ```
 \newpage
 \tableofcontents
@@ -89,6 +90,7 @@ lapply(seq_along(groups), function(u){plot(groups[[u]],main = paste(names(groups
 ```
 
 As we can see the foragers and cleaners groups contain more ants than the nurses group and they also contains more interactions.
+
 ## The original paper
 
 The original paper was written by: Danielle P. Mersch, Alessandro Crespi and Laurent Keller and explores questions related how can we separate ant colonies into groups and what makes ants change the group they belong to. During their study they found 3 main groups based on the interactions between ants and concluded that age is the main factor that determines ants to change the group they are part of. All colonies studied had 4-years old queens and between 122 and 192 workers per colony. Each ant was marked and followed individually and an interaction between two ants were defined by the fact that "the front end of one ant was located within thetrapezoidal shape representing the other ant".
@@ -209,7 +211,13 @@ tmp <- lapply(names(groups), function(u) hist(degree(groups[[u]]), freq = FALSE,
 
 ```{r}
 par(mfrow=c(1,3))
-tmp <- lapply(groups, function(u) plot(degree_distribution(u), xlab = "Degree", ylab = "Density"))
+max(degree(groups[[1]]))
+length(degree_distribution(groups[[1]]))
+tmp <- lapply(groups, function(u){
+  deg_dist <- data.frame(value = degree_distribution(u), deg=1:(max(degree(u))+1))
+  ggplot(deg_dist) + aes(x=deg, y=value) + geom_point()
+})
+tmp
 ```
 
 
@@ -230,49 +238,44 @@ lapply(groups, diameter)
 ```
 ### Centrality Measures
 
-Degree centrality is very homogeneous. This is due to the equal distribution of degrees. It is not very informative for us.
+We have considered many different centrality measures. Most of them have shown a rather homogeneous distribution, meaning there was no distinction possible between central nodes and less central nodes. For each group the following centrality measures were decreasing smoothly without any particular exceptional occurrences: degree centrality, closeness centrality and eigenvalue centrality. While this can indicate that in general there are no real distinct central nodes in the network we can still try to find some special ants w.r.t. other centrality measures.
 
-```{r}
-par(mfrow=c(1,3))
-deg <- lapply(groups, centralization.degree)
-deg <- lapply(deg, function(u) u$res[order(u$res, decreasing = TRUE)])
-tmp <- lapply(names(deg), function(u) barplot(deg[[u]], main = paste("Degree centrality", u)))
-
-deg_data<-lapply(1:3,function(u){deg[[u]]<-data.frame(degree=deg[[u]],group=names(deg)[u])})
-deg_data<-do.call(rbind,deg_data)
-ggplot(deg_data)+aes(group,degree)+geom_boxplot()
+```{r, echo=FALSE, results='hide'}
+# par(mfrow=c(1,3))
+# deg <- lapply(groups, centralization.degree)
+# deg <- lapply(deg, function(u) u$res[order(u$res, decreasing = TRUE)])
+# tmp <- lapply(names(deg), function(u) barplot(deg[[u]], main = paste("Degree centrality", u)))
+# 
+# deg_data<-lapply(1:3,function(u){deg[[u]]<-data.frame(degree=deg[[u]],group=names(deg)[u])})
+# deg_data<-do.call(rbind,deg_data)
+# tmp <- ggplot(deg_data)+aes(group,degree)+geom_boxplot()
 ```
 
 
-
-Closeness centrality: Similar picture. Most of the ants are close to many other nodes due to the high connectivity.
-
-```{r}
-par(mfrow=c(1,3))
-clos <- lapply(groups, centralization.closeness)
-clos <- lapply(clos, function(u) u$res[order(u$res, decreasing = TRUE)])
-tmp <- lapply(names(clos), function(u) barplot(clos[[u]], main = paste("Closeness centrality", u)))
-clos_data<-lapply(1:3,function(u){clos[[u]]<-data.frame(closeness=clos[[u]],group=names(clos)[u])})
-clos_data<-do.call(rbind,clos_data)
-ggplot(clos_data)+aes(group,closeness)+geom_boxplot()
+```{r, echo=FALSE, results='hide'}
+# par(mfrow=c(1,3))
+# clos <- lapply(groups, centralization.closeness)
+# clos <- lapply(clos, function(u) u$res[order(u$res, decreasing = TRUE)])
+# tmp <- lapply(names(clos), function(u) barplot(clos[[u]], main = paste("Closeness centrality", u)))
+# clos_data<-lapply(1:3,function(u){clos[[u]]<-data.frame(closeness=clos[[u]],group=names(clos)[u])})
+# clos_data<-do.call(rbind,clos_data)
+# ggplot(clos_data)+aes(group,closeness)+geom_boxplot()
 ```
 
-Betweenness centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. 
+```{r, echo=FALSE, results='hide'}
+# par(mfrow=c(1,3))
+# eig <- lapply(groups, centralization.evcent)
+# eig <- lapply(eig, function(u) u$vector[order(u$vector, decreasing = TRUE)])
+# tmp <- lapply(names(eig), function(u) barplot(eig[[u]], main = paste("Eigenvalue centrality", u)))
+```
+
+Betweenness centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. And some ants are rather unimportant in the network.  
 
 ```{r}
 par(mfrow=c(1,3))
 betw <- lapply(groups, centralization.betweenness)
 betw <- lapply(betw, function(u) u$res[order(u$res, decreasing = TRUE)])
 tmp <- lapply(names(betw), function(u) barplot(betw[[u]], main = paste("Betweenness centrality", u)))
-```
-
-Eigenvalue centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. 
-
-```{r}
-par(mfrow=c(1,3))
-eig <- lapply(groups, centralization.evcent)
-eig <- lapply(eig, function(u) u$vector[order(u$vector, decreasing = TRUE)])
-tmp <- lapply(names(eig), function(u) barplot(eig[[u]], main = paste("Eigenvalue centrality", u)))
 ```
 
 Pagerank: Here we can see that the foragers have a few ants who are very important w.r.t to this centrality measure. This could indicate that these ants are consulted by many other ants who themselves are consulted by many ants. 

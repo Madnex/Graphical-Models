@@ -96,3 +96,9 @@ V(g)$group
 betw <- data.frame(betw)
 betw<-data.frame(name=rownames(betw),value=betw$betw)
 ggplot(betw) + aes(y=value,x=name) + geom_col()
+
+
+
+
+
+cluster_infomap(g)
