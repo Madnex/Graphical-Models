@@ -105,6 +105,79 @@ We will first explore the network in a descriptive manner. This includes charact
 
 As we noted above the data we are going to use for our analysis refers to the movements of the ants of the first colony in day 17 of the study. Thus the graph has 99 vertices and 3342 edges. We must also note that the graph is connected.
 
+## Statistics of atributes
+
+As we noted above there are several attributes that describe each ant. In the following sub-section we will analise two of those, namely the age and the body size of the ant and then we will highlight differences in regard to this attributes for each category of ants (as defined by the authors of the study).
+
+```{r}
+# Here we select and transform into a data frame the relevant variables
+atributes<-vertex.attributes(g)
+atributes1<-data.frame(
+  id=atributes$name,
+  group=atributes$group,
+  cathegory=rep("age",length(atributes$name)),
+  val=atributes$`age(days)`
+)
+atributes2<-data.frame(
+  id=atributes$name,
+  group=atributes$group,
+  cathegory=rep("size",length(atributes$name)),
+  val=atributes$body_size
+)
+atr<-rbind(atributes1,atributes2)
+atr<-atr[atr$group!="",]
+str(atr)
+```
+
+### Body size
+
+```{r}
+ggplot(atr[atr$cathegory=="size",])+aes(x=group,y=val)+geom_boxplot()
+```
+It can be easily seen that the queen has a much greater body size than the ants of the other groups. There is little difference between ants of the three groups in regard to this variable. Furthermore most ants had a body size aroun 150 with just a few of them having greater body sizes.
+
+```{r}
+ggplot(atr[atr$cathegory=="size",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
+```
+
+```{r}
+atr_size<-atr[atr$cathegory=="size",]
+# The series are not normally distributed with the exception of group "N"
+aggregate(val~group,data=atr_size,mean)
+shapiro.test(atr_size$val[atr_size$group=="C"])
+shapiro.test(atr_size$val[atr_size$group=="F"])
+shapiro.test(atr_size$val[atr_size$group=="N"])
+# The series are not that different
+wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="F"])
+wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="N"])
+wilcox.test(atr_size$val[atr_size$group=="F"],atr_size$val[atr_size$group=="N"])
+```
+As the data for body size for ants in groups C and F is not normally distributed we preferred to use the Wilcoxon rank sum exact test in order to check whether there is any difference between the means of the body sizes of the three groups. As the results of the test yields p-values way above 0.05 we can conclude that the three groups have roughtly equal body sizes.
+
+### Age
+
+```{r}
+ggplot(atr[atr$cathegory=="age",])+aes(x=group,y=val)+geom_boxplot()
+```
+The boxplots show that most ants have similar ages, with the exception of the queen which is much older than the other ants. The groups do not seem to be different in age.
+```{r}
+ggplot(atr[atr$cathegory=="age",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("Age in days")
+```
+The histogram shows a pike around the age of 300 days. Most ants are younger than 500 days and they are born in "wawes".
+```{r}
+atr_age<-atr[atr$cathegory=="age",]
+# The series are not normally distributed
+aggregate(val~group,data=atr_age,mean)
+shapiro.test(atr_age$val[atr_age$group=="C"])
+shapiro.test(atr_age$val[atr_age$group=="F"])
+shapiro.test(atr_age$val[atr_age$group=="N"])
+# The series are not that different
+wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="F"])
+wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="N"])
+wilcox.test(atr_age$val[atr_age$group=="F"],atr_age$val[atr_age$group=="N"])
+```
+
+There is no difference in mean age between the three groups.
 ## For the general network
 
 ```{r,echo=FALSE,results='hide'}
@@ -295,101 +368,7 @@ lapply(groups, transitivity)
 ## K-means check
 
 ### Preparing the data
-```{r}
-atributes<-vertex.attributes(g)
-str(atributes)
-to_cluster<-data.frame(
-  id=atributes$name,
-  group=atributes$group,
-  i_queen=atributes$nb_interaction_queen,
-  i_forag=atributes$nb_interaction_foragers,
-  i_clean=atributes$nb_interaction_cleaners,
-  i_nurse=atributes$nb_interaction_nurses,
-  v_rubbish=atributes$visits_to_rubbishpile,
-  v_entr=atributes$visits_to_nest_entrance,
-  v_brood=atributes$visits_to_brood,
-  foraging=atributes$nb_foraging_events,
-  age=atributes$`age(days)`,
-  size=atributes$body_size
-)
-to_cluster<-na.omit(to_cluster)
-str(to_cluster)
-nrow(to_cluster)
-```
 
-```{r}
-to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
-models<-lapply(1:10,function(i){kmeans(to_cluster2,i)})
-sum_withinn<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$tot.withinss}))
-sum_withinn<-data.frame(index=1:nrow(sum_withinn),name=rep("withiness",nrow(sum_withinn)),value=sum_withinn)
-sum_between<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$betweenss}))
-sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_between)),value=sum_between)
-#sum_total<-data.frame(index=1:nrow(sum_between),
-#                   name=rep("total error",nrow(sum_between)),
-#                   value=sum_between$value+sum_withinn$value)
-to_plot<-rbind(sum_withinn,sum_between)
-ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()
-```
-
-```{r}
-model3<-models[[3]]
-to_cluster3<-data.frame(to_cluster,found_labels=model3$cluster)
-table(to_cluster3$group,to_cluster3$found_labels)
-```
-From the results above we may infer that the foragers group may have been misclasified and that there are a lot of foragers that present similar behaviour to that of the cleaners.
-```{r}
-model4<-models[[4]]
-to_cluster4<-data.frame(to_cluster,found_labels=model4$cluster)
-table(to_cluster4$group,to_cluster4$found_labels)
-```
-
-
-
-### Atempt 2
-```{r}
-atributes<-vertex.attributes(g)
-str(atributes)
-to_cluster<-data.frame(
-  id=atributes$name,
-  group=atributes$group,
-  i_queen=atributes$nb_interaction_queen,
-  i_forag=atributes$nb_interaction_foragers,
-  i_clean=atributes$nb_interaction_cleaners,
-  i_nurse=atributes$nb_interaction_nurses,
-  v_rubbish=atributes$visits_to_rubbishpile,
-  v_entr=atributes$visits_to_nest_entrance,
-  v_brood=atributes$visits_to_brood,
-  foraging=atributes$nb_foraging_events
-)
-to_cluster<-na.omit(to_cluster)
-str(to_cluster)
-nrow(to_cluster)
-```
-
-
-```{r}
-to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
-models<-lapply(1:10,function(i){kmeans(to_cluster2,i)})
-sum_withinn<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$tot.withinss}))
-sum_withinn<-data.frame(index=1:nrow(sum_withinn),name=rep("withiness",nrow(sum_withinn)),value=sum_withinn)
-sum_between<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$betweenss}))
-sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_between)),value=sum_between)
-#sum_total<-data.frame(index=1:nrow(sum_between),
-#                   name=rep("total error",nrow(sum_between)),
-#                   value=sum_between$value+sum_withinn$value)
-to_plot<-rbind(sum_withinn,sum_between)
-ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()
-```
-
-```{r}
-model3<-models[[3]]
-to_cluster3<-data.frame(to_cluster,found_labels=model3$cluster)
-table(to_cluster3$group,to_cluster3$found_labels)
-```
-
-Stil the same problem
-
-### Atempt 3
 ```{r}
 atributes<-vertex.attributes(g)
 to_cluster<-data.frame(
@@ -407,7 +386,23 @@ to_cluster<-na.omit(to_cluster)
 str(to_cluster)
 nrow(to_cluster)
 ```
+In the section above we selected the data that will be used for clustering and the auxiliary variables that will be used to check the quality of the model. The data to be used for clustering is: 
 
+* The score of the interactions with the queen
+
+* The score of the trips to the rubbish pile
+
+* The score of the trips to the entrance o the nest
+
+* The score of the trips to the brood
+
+* The age
+
+* The size
+
+* The foraging events
+
+In addition we also kept the id and the group (decided of the authors of the study) of each ant.
 
 ```{r}
 to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
@@ -422,22 +417,20 @@ sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_
 to_plot<-rbind(sum_withinn,sum_between)
 ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()
 ```
-
+We first analised the within group error of the clustering per number of considered groups and we conlcuded that as there is no definite point where to make a cut the most suitable number of groups is 3 as it would allow us to compare with the groups fitted by the authors of the study.
 ```{r}
 model3<-models[[3]]
 to_cluster3<-data.frame(to_cluster,found_labels=model3$cluster)
 table(to_cluster3$group,to_cluster3$found_labels)
 ```
-```{r}
-model4<-models[[4]]
-to_cluster4<-data.frame(to_cluster,found_labels=model4$cluster)
-table(to_cluster4$group,to_cluster4$found_labels)
-```
+
+The results of the k-means clustering were quite underwhelming as the model did not fit groups close to those fitted by the authors of the study. The clustering faze was just a first look we will proceed to use graph-specific statistical models that will allow us to have a more conclusive conclusions weather the results of the study can be validated or not. 
 
 
 
+# Key points and conclusions
 
-
+In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the cervices. During that faze we found which were the main characteristics included by the data, created plots and did statistical testing on them i order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our projects we created a k-mean model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models.
 
 
 
