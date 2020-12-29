@@ -13,12 +13,15 @@
 * Do any attributes indicate a certain position?
 
 ## Descriptive Statistics of the network
+* Plots about age and size
 * Explore the network
 * Mean, degree distribution, etc.
 * Some Plots (maybe fancy ones)
+* Barplot about closeness centrality and degree by group
 
-## Model
-* model the network with specific model
+## Model JAN
+* Compare the graph with a random er graph and small world graph
+* Is the clustering coefficient similar, p-value?
 
 ## Validation
 * validate models?
