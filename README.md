@@ -7,7 +7,7 @@
 
 ### Our questions
 * Validate paper e.g. 
-* confirm that connections in groups way more frequent
+* confirm that connections in groups way more frequent 
 * how fast can information be spread? 
 * centrality of the queen? or other ants (groups)
 * Do any attributes indicate a certain position?
@@ -49,12 +49,16 @@ Analysis:
 * centrality measures
 * global clustering coefficient
 
-* Table to compare
-
 * kmeans-clustering # Andrei
 * Plot # Jan
 * properties
 
+
+* Modeling with Simulation ER-Graphs in Report # JAN
+* Propagation of information (Flooding, etc.) # ANDREI
+* Table to compare # JAN
+* Conclusion # ANDREI
+* Statement of division of labor # JAN & ANDREI
 
 
 

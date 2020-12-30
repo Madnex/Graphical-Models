@@ -426,6 +426,152 @@ table(to_cluster3$group,to_cluster3$found_labels)
 
 The results of the k-means clustering were quite underwhelming as the model did not fit groups close to those fitted by the authors of the study. The clustering faze was just a first look we will proceed to use graph-specific statistical models that will allow us to have a more conclusive conclusions weather the results of the study can be validated or not. 
 
+# Modeling
+
+To get some more insights into how the network is organized and to understand the underlying creating behavior of the network we can try to model it. There are several ways of modeling a network. We will focus on random networks and exponential random graph models (ERGMs).
+However, we considered other network models as well but they depend on restrictions which are not fulfilled in this network. This includes exemplary the normality assumption for correlation networks and gaussian graphical models. Correlation networks are based on the attributes of the network. If the correlation between two nodes and their corresponding attributes is high, we expect an edge between them. The attributes are assumed to be normally distributed. AS one can see in the following plot this assumption can not hold very much. Additionally, a Shapiro-Wilk-Tests showed that none of the attributes are distributed normally. 
+
+```{r}
+g.size <- V(g)$body_size
+g.age <- V(g)$`age(days)`
+g.forage <- V(g)$nb_foraging_events
+g.brood <- V(g)$visits_to_brood
+g.nest <- V(g)$visits_to_nest_entrance
+g.rubbish <- V(g)$visits_to_rubbishpile
+g.queen <- V(g)$nb_interaction_queen
+
+g.attr <- data.frame("size" = g.size, "age" = g.age, "forage" = g.forage,
+                     "brood" = g.brood, "nest" = g.nest, "rubbish" = g.rubbish,
+                     "queen" = g.queen)
+
+qqnorm(as.matrix(g.attr))
+
+shap.tests <- apply(g.attr, 2, shapiro.test)
+sapply(shap.tests, function(u) u$p.value)
+
+```
+## Erdos-Renyi
+
+Thus we decided to focus on simpler models. To conduct the network w.r.t. the three properties clustering coefficient, diameter and average path length, we are using an Erdos-Renyi model. This one showed, compared to the other possible modeling solutions the best results. In an Erdos-Renyi graph is a graph where each pair of nodes is connected independently with probability $p$. It is assumed to be undirected. To create an Erdos-Renyi graph based on our given network we can take two network characteristics into account: The number of nodes $n$ and the proportion of edges $E$ w.r.t. the possible number of edges in the network: $p=\frac{E}{n(n-1)/2}$. With these values we can then create an Erdos-Renyi graph based on $n$ and $p$. For the given network we find $n=99$ and $p=0.689$.
+
+```{r}
+set.seed(42)
+e <- ecount(g)
+n <- vcount(g)
+p <- e/(n*(n-1)/2)
+di.g <- diameter(g)
+cl.g <- transitivity(g)
+apl.g <- average.path.length(g)
+
+er.graph=erdos.renyi.game(n,p)
+```
+
+To be sure that the chosen $p$ is appropriate we can also look at different values for $p$ and check how well the different models perform w.r.t. the different properties. 
+
+```{r}
+set.seed(30)
+steps=seq(0,1,0.05)
+len=length(steps)
+cl=numeric(len)
+apl=numeric(len)
+di=numeric(len)
+ntrials=100
+for (i in 1:len){
+  cltemp=numeric(ntrials)
+  apltemp=numeric(ntrials)
+  ditemp=numeric(ntrials)
+  for (j in 1:ntrials)	{
+    g_temp=erdos.renyi.game(n,steps[i])
+    cltemp[j]=transitivity(g_temp)
+    apltemp[j]=average.path.length(g_temp)
+    ditemp[j]=diameter(g_temp)
+  }
+  cl[i]=mean(cltemp)
+  apl[i]=mean(apltemp)
+  di[i]=mean(ditemp)
+}
+cl
+apl
+di
+best_cl <- steps[which.min(abs(cl-cl.g))]
+best_apl <- steps[which.min(abs(apl-apl.g))]
+best_di <- steps[which.min(abs(di-di.g))]
+
+cl.opt <- cl[which.min(abs(cl-cl.g))]
+apl.opt <- apl[which.min(abs(apl-apl.g))]
+di.opt <- di[which.min(abs(di-di.g))]
+```
+
+We see then, that we get three different values for $p$ depending of the criterion on which we try to optimize $p$. If we look at the clustering coefficient we find $p=0.8$ to be the closest to the original network's clustering coefficient. In contrast we find $p=0.7$ for the average path length and $p=0.1$ for the diameter. We can observe that the chosen $p=0.689$ is somehow close to the ones for the average path length and the diameter. We note in particular that the diameter behaves quite differently for varying $p$ compared to the other two properties. In order to get a high diameter we need to have a very small $p$. In contrast to that the other two properties seem to fit quite well with the original network and it's value of $p$.
+
+
+Additionally, we can do a monte carlo simulation to check if it is probable the our observed network is coming from this distribution.
+
+```{r}
+## Simulation
+set.seed(9)
+n_sim <- 1000
+cl.sim <- numeric(n_sim)
+apl.sim <- numeric(n_sim)
+di.sim <- numeric(n_sim)
+for (i in 1:n_sim){
+  g.temp=erdos.renyi.game(n,p)
+  cl.sim[i] <- transitivity(g.temp)
+  apl.sim[i] <- average.path.length(g.temp)
+  di.sim[i] <- diameter(g.temp)
+}
+
+mean(cl.sim > cl.g)
+mean(apl.sim > apl.g)
+mean(di.sim > di.g)
+```
+We observe that the probability to get a clustering coefficient that is greater than our observed graph is close to 0. Similarly for the diameter of the graph. However, the average path length is not that clear. 50.7% of the sampled graphs hat a higher average path length than the observed one. This shows that the model is still not perfectly fitting. But with respect to the clustering coefficient we have an acceptable model. 
+
+If we consider the Erdos-Renyi model we can state that the network is based on a purely random fashion. The ants seem to connect at random. But we need to keep in mind that the model is not perfect w.r.t the properties average path length and diameter. Furthermore, we could surely look at more properties of the network and take them as reference measures as well. 
+
+## ERGM
+
+To capture a bit more in detail the underlying process of the network we can try to make use of an ERGM. This allows us to take the categorical attributes into account. We can take the groups as the most important attribute and have a look at the resulting models. An ERGM model models a graph which is distributed according to a distribution which belongs to an exponential family. Again we have the number of nodes fixed and try to find a probability of an edge between two nodes. However, in contrast to the Erdos-Renyi graph we take into account the attributes of the network. Thus we can make inference about the edges when we look at two specific nodes. If node $X$ is of class $A$ and node $Y$ of class $B$ the probability of a tie between those two might be different compared to the case where both nodes are from the same class.
+
+When creating a model we can first just look at the edges. We do not include any attributes yet. 
+
+```{r}
+### ERGM models
+library(network)
+library(ergm)
+library(intergraph)
+
+g.network <- asNetwork(g)
+edge.indep <- ergm(g.network ~ edges) 
+
+summary(edge.indep)
+edge.indep$coef[1]
+plogis(coef(edge.indep))
+# Nodes have a 68.9% chance of being connected
+```
+The probability for an edge between two nodes regardless of their attributes is $0.689$. This is exactly the same as we found earlier.
+
+If we now introduce the attribute *group* and check for the matching probability we find:
+```{r}
+edge.group <- ergm(g.network ~ edges + nodematch("group")) 
+summary(edge.group)
+
+plogis(coef(edge.group)[1] + coef(edge.group)[2])
+# Nodes of the same group have a 88% chance of being connected
+```
+
+This means that nodes who have the same group have a much higher probability of having a tie: $p=0.88$. This confirms what was found in the paper. To check the validity of the model we can check the goodness of fit.
+
+```{r}
+#gof.edge.group=gof(edge.group)
+#plot(gof.edge.group)
+```
+![Goodness of fit](gof.png)
+
+As we can see the result is not very accurate. With respect to the minimum geodesic distance we find a fit that is okay. But for the degree and edge-wise shared partners the model does not fit the data very well. Therefore, we need to be careful with interpreting this model as well. Nevertheless, we can state that we find a similar tendency like the authors of the paper did. Ants of the same group have a higher chance of a tie.
+
+In general we can say that the given models do not fit the network very well. We do not show the other models here that were tried but did perform even worse. This could be caused by an unusual behavior of the network. It might be very difficult to find a good fitting model. There seems to be a lot of randomness besides from some structure going on in the network. Even though we could not find a perfect model, the proposed models indicate that the network is very densely connected and that the groups that were found are reasonable.
+
 
 
 # Key points and conclusions
