@@ -86,7 +86,7 @@ groups <- list(Foragers=foragers, Nurses=nurses, Cleaners=cleaners)
 
 par(mfrow=c(1,3))
 
-lapply(seq_along(groups), function(u){plot(groups[[u]],main = paste(names(groups)[u]),vertex.label=NA)})
+tmp <- lapply(seq_along(groups), function(u){plot(groups[[u]],main = paste(names(groups)[u]),vertex.label=NA)})
 ```
 
 As we can see the foragers and cleaners groups contain more ants than the nurses group and they also contains more interactions.
@@ -365,6 +365,21 @@ Very similar results again for the clustering coefficient. All groups are very h
 lapply(groups, transitivity)
 ```
 
+## Summary table of descriptive measures
+
+```{r}
+g.table <- data.frame(Global=c(average.path.length(g), diameter(g), transitivity(g)))
+row.names(g.table) <- c("APL", "Diameter", "Clustering")
+apl.groups <- sapply(groups, average.path.length)
+diameter.groups <- sapply(groups, diameter)
+transitivity.groups <- sapply(groups, transitivity)
+
+per_group <- rbind(apl.groups, diameter.groups, transitivity.groups)
+g.table <- cbind(g.table, per_group)
+g.table
+```
+We see that the average path length varies a bit from group to group and compared to the global one. The diameter varies a lot since we have each time potentially lost connections in the subnetworks. The clustering is globally smaller than in each group which supports the idea of those three communities in the graph.
+
 ## K-means check
 
 ### Preparing the data
@@ -468,7 +483,7 @@ er.graph=erdos.renyi.game(n,p)
 
 To be sure that the chosen $p$ is appropriate we can also look at different values for $p$ and check how well the different models perform w.r.t. the different properties. 
 
-```{r}
+```{r, echo=FALSE}
 set.seed(30)
 steps=seq(0,1,0.05)
 len=length(steps)
