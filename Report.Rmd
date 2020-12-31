@@ -485,11 +485,12 @@ To be sure that the chosen $p$ is appropriate we can also look at different valu
 
 ```{r, echo=FALSE}
 set.seed(30)
-steps=seq(0,1,0.05)
+steps=seq(0,1,0.005)
+steps<-steps[-1]
 len=length(steps)
-cl=numeric(len)
-apl=numeric(len)
-di=numeric(len)
+cl=data.frame(indicator=rep("cl",len),values=rep(0,len),index=steps)
+apl=data.frame(indicator=rep("apl",len),values=rep(0,len),index=steps)
+di=data.frame(indicator=rep("di",len),values=rep(0,len),index=steps)
 ntrials=100
 for (i in 1:len){
   cltemp=numeric(ntrials)
@@ -501,20 +502,21 @@ for (i in 1:len){
     apltemp[j]=average.path.length(g_temp)
     ditemp[j]=diameter(g_temp)
   }
-  cl[i]=mean(cltemp)
-  apl[i]=mean(apltemp)
-  di[i]=mean(ditemp)
+  cl[i,2]=mean(cltemp)
+  apl[i,2]=mean(apltemp)
+  di[i,2]=mean(ditemp)
 }
-cl
-apl
-di
-best_cl <- steps[which.min(abs(cl-cl.g))]
-best_apl <- steps[which.min(abs(apl-apl.g))]
-best_di <- steps[which.min(abs(di-di.g))]
 
-cl.opt <- cl[which.min(abs(cl-cl.g))]
-apl.opt <- apl[which.min(abs(apl-apl.g))]
-di.opt <- di[which.min(abs(di-di.g))]
+to_plot<-rbind(cl,apl,di)
+ggplot(to_plot)+aes(x=index,y=values,colour=indicator)+geom_line()
+to_plot
+best_cl <- steps[which.min(abs(cl[,2]-cl.g))]
+best_apl <- steps[which.min(abs(apl[,2]-apl.g))]
+best_di <- steps[which.min(abs(di[,2]-di.g))]
+
+cl.opt <- cl[which.min(abs(cl[,2]-cl.g)),2]
+apl.opt <- apl[which.min(abs(apl[,2]-apl.g)),2]
+di.opt <- di[which.min(abs(di[,2]-di.g)),2]
 ```
 
 We see then, that we get three different values for $p$ depending of the criterion on which we try to optimize $p$. If we look at the clustering coefficient we find $p=0.8$ to be the closest to the original network's clustering coefficient. In contrast we find $p=0.7$ for the average path length and $p=0.1$ for the diameter. We can observe that the chosen $p=0.689$ is somehow close to the ones for the average path length and the diameter. We note in particular that the diameter behaves quite differently for varying $p$ compared to the other two properties. In order to get a high diameter we need to have a very small $p$. In contrast to that the other two properties seem to fit quite well with the original network and it's value of $p$.
@@ -591,7 +593,7 @@ In general we can say that the given models do not fit the network very well. We
 
 # Key points and conclusions
 
-In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the cervices. During that faze we found which were the main characteristics included by the data, created plots and did statistical testing on them i order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our projects we created a k-mean model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models.
+In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the cervices. During that faze we found which were the main characteristics included by the data, created plots and did statistical testing on them i order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our projects we created a k-mean model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models the Erdos-Renyi random graph, the model produced results quite close to those of the original graph we analyzed. After a first check we implemented a cross-validation algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph.
 
 
 
