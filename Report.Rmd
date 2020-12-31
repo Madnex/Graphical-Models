@@ -163,7 +163,7 @@ The boxplots show that most ants have similar ages, with the exception of the qu
 ```{r}
 ggplot(atr[atr$cathegory=="age",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("Age in days")
 ```
-The histogram shows a pike around the age of 300 days. Most ants are younger than 500 days and they are born in "wawes".
+The histogram shows a pike around the age of 300 days. Most ants are younger than 500 days and they are born in "waves".
 ```{r}
 atr_age<-atr[atr$cathegory=="age",]
 # The series are not normally distributed
