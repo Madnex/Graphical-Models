@@ -50,13 +50,13 @@ Analysis:
 * global clustering coefficient
 
 * kmeans-clustering # Andrei
-* Plot # Jan
+* Plot # Jan-done
 * properties
 
 
-* Modeling with Simulation ER-Graphs in Report # JAN
+* Modeling with Simulation ER-Graphs in Report # JAN-done
 * Propagation of information (Flooding, etc.) # ANDREI
-* Table to compare # JAN
+* Table to compare # JAN-done
 * Conclusion # ANDREI
 * Statement of division of labor # JAN & ANDREI
 
