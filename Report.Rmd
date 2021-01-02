@@ -12,6 +12,7 @@ library(stats)
 source("helpers.R")
 library(stargazer)
 library(gridExtra)
+library(DT)
 ```
 \newpage
 \tableofcontents
@@ -43,7 +44,8 @@ Next we displayed the number of edges with the `ecount` command. There are over 
 ecount(g)
 ```
 ```{r echo=FALSE, results='hide'}
-str(vertex.attributes(g))
+to_table<-do.call(cbind,vertex.attributes(g))
+datatable(to_table)
 ```
 Each vertex has also a set of attributes like:
 
@@ -157,17 +159,18 @@ It can be easily seen that the queen has a much greater body size than the ants 
 atr_size<-atr[atr$cathegory=="size",]
 # The series are not normally distributed with the exception of group "N"
 mean_table_size <- aggregate(val~group,data=atr_size,mean)
-shapiro.test(atr_size$val[atr_size$group=="C"])
-shapiro.test(atr_size$val[atr_size$group=="F"])
-shapiro.test(atr_size$val[atr_size$group=="N"])
+results<-data.frame(group=mean_table_size$group[1:3],av_size=mean_table_size$val[1:3],Shapiro_pi=rep(0,3))
+for(i in 1:3){
+temp<-shapiro.test(atr_size$val[atr_size$group==results$group[i]])
+results$Shapiro_pi[i]<-temp$p.value
+}
+knitr::kable(results)
 # The series are not that different
 wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="F"])
 wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="N"])
 wilcox.test(atr_size$val[atr_size$group=="F"],atr_size$val[atr_size$group=="N"])
 ```
-```{r echo=FALSE}
-knitr::kable(mean_table_size)
-```
+
 
 As the data for body size for ants in groups C and F is not normally distributed we preferred to use the Wilcoxon rank sum exact test in order to check whether there is any difference between the means of the body sizes of the three groups. As the results of the test yields p-values way above 0.05 we can conclude that the three groups have roughtly equal body sizes.
 
@@ -196,17 +199,18 @@ The histogram shows a pike around the age of 300 days. Most ants are younger tha
 atr_age<-atr[atr$cathegory=="age",]
 # The series are not normally distributed
 mean_table_age <- aggregate(val~group,data=atr_age,mean)
-shapiro.test(atr_age$val[atr_age$group=="C"])
-shapiro.test(atr_age$val[atr_age$group=="F"])
-shapiro.test(atr_age$val[atr_age$group=="N"])
+results<-data.frame(group=mean_table_age$group[1:3],av_size=mean_table_age$val[1:3],Shapiro_pi=rep(0,3))
+for(i in 1:3){
+temp<-shapiro.test(atr_age$val[atr_age$group==results$group[i]])
+results$Shapiro_pi[i]<-temp$p.value
+}
+knitr::kable(results)
 # The series are not that different
 wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="F"])
 wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="N"])
 wilcox.test(atr_age$val[atr_age$group=="F"],atr_age$val[atr_age$group=="N"])
 ```
-```{r echo=FALSE}
-knitr::kable(mean_table_age)
-```
+
 There is no difference in mean age between the three groups.
 
 ## For the general network
@@ -550,7 +554,7 @@ apl.opt <- apl[which.min(abs(apl[,2]-apl.g)),2]
 di.opt <- di[which.min(abs(di[,2]-di.g)),2]
 
 
-p_table <- cbind("p"=steps,"Clustering"=cl, "APL"=apl, "Diameter"=di)
+p_table <- cbind("p"=steps,"Clustering"=cl, "APL"=apl, "Diameter"=di) # Too big table, sure you want to keep it?
 knitr::kable(p_table, digits = 3)
 
 ```
@@ -636,12 +640,22 @@ In general we can say that the given models do not fit the network very well. We
 
 # Key points and conclusions
 
-In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the cervices. During that faze we found which were the main characteristics included by the data, created plots and did statistical testing on them i order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our projects we created a k-mean model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models the Erdos-Renyi random graph, the model produced results quite close to those of the original graph we analyzed. After a first check we implemented a cross-validation algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph. Then we did a Monte Carlo Simulation in order to determine if our network can be considered a random graph. The results show that it is a random graph though one imperfect w.r.t the properties average path length and diameter. In this case a further modeling of the graph is 
+### Key points
+
+In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the cervices. During that faze we found which were the main characteristics included by the data, created plots and did statistical testing on them i order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our projects we created a k-mean model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models the Erdos-Renyi random graph, the model produced results quite close to those of the original graph we analyzed. After a first check we implemented a cross-validation algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph. Then we did a Monte Carlo Simulation in order to determine if our network can be considered a random graph. The results show that it is a random graph though one imperfect w.r.t the properties average path length and diameter. In this case a further modeling of the graph is required, thus we tried to use exponential an exponential random graph model which yielded mixed results.
+
+### Conclusions
+
+During our analysis we deployed a series of methods in order to validate the results of a theoretical paper about the social interactions of ants. The method we chose (due to time constraints) was to pick one of the many graphs utilized by the authors of the original study and see whether it fits on the conclusions of the authors. This approach has a series of shortcomings foremost of them being that we may have chosen a graph whose properties are outliers and thus not representative for most of the used graphs. It must be stated though that we did the validation as a proof of concept mostly and our code can be iteratively run for all of the graphs used by the authors.
+
+One of the main observations for the analised graph is that its characteristicd don't mach very well those stated by the authors of the study, for example they state that ants change their group as they age but we could not find any notable difference between the average ages of the groups. Another area where our analisys yielded mixed results was on the modeling side where we found that the analised graph is best fitted by an Erdos-Renyi random graph.
 
 # Statement of Division of Labor
 
 *Jan Lennartz*: 
 I performed the statistical analysis by group and took care of the main plot of the network. I conducted the different models and analyzed the ER and ERGM models. Additionally, I introduced our main questions.
+*Andrei Chirita*:
+I performed the statistical analysis for the whole dataset and took care of the statistical test that determined whether there are differences between groups in regard to age and body size. I also did the k-means model and took care of data description and stating the key points of the project.
 
 
 
