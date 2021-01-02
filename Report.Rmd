@@ -4,13 +4,14 @@ author: "Jan Lennartz & Andrei Chirita"
 date: "11/22/2020"
 output: pdf_document
 ---
-```{r,echo=FALSE,results='hide'}
+```{r echo=FALSE,results='hide', message=FALSE}
 library(curl)
 library(igraph)
 library(ggplot2)
 library(stats)
 source("helpers.R")
 library(stargazer)
+library(gridExtra)
 ```
 \newpage
 \tableofcontents
@@ -26,21 +27,22 @@ The original data of the study consist of more than 9 million observed interacti
 
 ### Preliminary data exploration
 
-In the following section we will show how the data is structured for a single colony in a single day (namely day 17, colony 1). We will start by loading the data using the get_graph function that we built previously.
+In the following section we will show how the data is structured for a single colony in a single day (namely day 17, colony 1). We will start by loading the data using the `get_graph` function that we built previously and is attached to this project.
 
-```{r}
+```{r echo=FALSE, results='hide'}
 g <- get_graph(colony = 1, day = 17)
 ```
-Next we will have a look at the vertices of the graph, as can be seen there are 99 of them in this graph.
 
-```{r}
+Next we will have a look at the vertices of the graph with the command `vcount`. There are 99 of them in this graph.
+
+```{r echo=FALSE, results='hide'}
 vcount(g)
 ```
-Next we displayed the number of edges, as can be seen there are over 3300 edges. Thus in day 17, for the first colony there were over 3342 interactions between 99 ants.
-```{r}
+Next we displayed the number of edges with the `ecount` command. There are over 3300 edges. In detail for day 17, for the first colony there were over 3342 interactions between 99 ants.
+```{r echo=FALSE, results='hide'}
 ecount(g)
 ```
-```{r}
+```{r echo=FALSE, results='hide'}
 str(vertex.attributes(g))
 ```
 Each vertex has also a set of attributes like:
@@ -55,7 +57,11 @@ Each vertex has also a set of attributes like:
 
 * The body size of the ant
 
-```{r, echo=FALSE}
+### Plot
+
+We will have a look at the plot of the whole network and a separate plot for each group. The colour corresponds to the group of the ant and the size to its degree. We see that there is a difference in the group sizes  with the nurses being the smallest group. Some ants have high degrees while some are rather separated. Yet, there are no ants with a very high degree. We can find some ants with a very low degree though. In general the network looks not too heterogeneous.
+
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 library(scales)
 G <- g
 G_Grouped = G
@@ -73,11 +79,11 @@ LO = layout_with_fr(G_Grouped)
 V(G)$group <- as.factor(V(G)$group)
 degs <- rescale(degree(G), c(0,1))
 ## Use the layout to plot the original graph
-plot(G, vertex.label = NA, vertex.color=V(G)$group, layout=LO, vertex.size = degs * 13)
+plot(G, vertex.label = NA, vertex.color=V(G)$group, layout=LO, vertex.size = degs * 13, main="Plot of the Network")
 legend('topleft',legend=c("NA", "Cleaners", "Foragers", "Nurses", "Queen"), col='black', pch=21, pt.bg=categorical_pal(5))
 ```
 
-```{r,echo=FALSE}
+```{r echo=FALSE, fig.width=7, fig.height=3}
 foragers <- induced_subgraph(g, which(V(g)$group=="F"))
 nurses <- induced_subgraph(g, which(V(g)$group=="N"))
 cleaners <- induced_subgraph(g, which(V(g)$group=="C"))
@@ -86,10 +92,13 @@ groups <- list(Foragers=foragers, Nurses=nurses, Cleaners=cleaners)
 
 par(mfrow=c(1,3))
 
-tmp <- lapply(seq_along(groups), function(u){plot(groups[[u]],main = paste(names(groups)[u]),vertex.label=NA)})
+tmp <- lapply(seq_along(groups), function(u){
+  degs <- rescale(degree(groups[[u]]), c(0,1))
+  plot(groups[[u]], main = paste(names(groups)[u]), vertex.label=NA, vertex.size = degs * 13, vertex.color="white")
+  })
 ```
 
-As we can see the foragers and cleaners groups contain more ants than the nurses group and they also contains more interactions.
+As we can see the foragers and cleaners groups contain more ants than the nurses group and they also contains more interactions. The nurses seem to be less connected and are structured a bit differently compared to the other groups.
 
 ## The original paper
 
@@ -105,12 +114,12 @@ We will first explore the network in a descriptive manner. This includes charact
 
 As we noted above the data we are going to use for our analysis refers to the movements of the ants of the first colony in day 17 of the study. Thus the graph has 99 vertices and 3342 edges. We must also note that the graph is connected.
 
-## Statistics of atributes
+## Statistics of attributes
 
-As we noted above there are several attributes that describe each ant. In the following sub-section we will analise two of those, namely the age and the body size of the ant and then we will highlight differences in regard to this attributes for each category of ants (as defined by the authors of the study).
+As we noted above there are several attributes that describe each ant. In the following sub-section we will analyze two of those, namely the age and the body size of the ant and then we will highlight differences in regard to this attributes for each category of ants (as defined by the authors of the study).
 
-```{r}
-# Here we select and transform into a data frame the relevant variables
+```{r echo=FALSE, results='hide'}
+# Here we select and transform the relevant variables into a data frame 
 atributes<-vertex.attributes(g)
 atributes1<-data.frame(
   id=atributes$name,
@@ -131,19 +140,23 @@ str(atr)
 
 ### Body size
 
-```{r}
-ggplot(atr[atr$cathegory=="size",])+aes(x=group,y=val)+geom_boxplot()
-```
-It can be easily seen that the queen has a much greater body size than the ants of the other groups. There is little difference between ants of the three groups in regard to this variable. Furthermore most ants had a body size aroun 150 with just a few of them having greater body sizes.
+```{r echo=FALSE, fig.width=7, fig.height=2}
+body_size_boxplot <- ggplot(atr[atr$cathegory=="size",])+aes(x=group,y=val)+geom_boxplot()
+body_size_boxplot <- body_size_boxplot + labs(x="Group", y="Size (mm)")
 
-```{r}
-ggplot(atr[atr$cathegory=="size",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
-```
+body_size_hist <- ggplot(atr[atr$cathegory=="size",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
+body_size_hist <- body_size_hist + labs(x="Size (mm)", y="Count")
 
-```{r}
+grid.arrange(body_size_boxplot, body_size_hist, ncol=2)
+
+```
+It can be easily seen that the queen has a much greater body size than the ants of the other groups. There is little difference between ants of the three groups in regard to this variable. Furthermore, most ants had a body size around 150mm with just a few of them having greater body sizes.
+
+
+```{r echo=FALSE, results='hide', message=FALSE}
 atr_size<-atr[atr$cathegory=="size",]
 # The series are not normally distributed with the exception of group "N"
-aggregate(val~group,data=atr_size,mean)
+mean_table_size <- aggregate(val~group,data=atr_size,mean)
 shapiro.test(atr_size$val[atr_size$group=="C"])
 shapiro.test(atr_size$val[atr_size$group=="F"])
 shapiro.test(atr_size$val[atr_size$group=="N"])
@@ -152,22 +165,37 @@ wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="F"])
 wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="N"])
 wilcox.test(atr_size$val[atr_size$group=="F"],atr_size$val[atr_size$group=="N"])
 ```
+```{r echo=FALSE}
+knitr::kable(mean_table_size)
+```
+
 As the data for body size for ants in groups C and F is not normally distributed we preferred to use the Wilcoxon rank sum exact test in order to check whether there is any difference between the means of the body sizes of the three groups. As the results of the test yields p-values way above 0.05 we can conclude that the three groups have roughtly equal body sizes.
 
 ### Age
 
-```{r}
-ggplot(atr[atr$cathegory=="age",])+aes(x=group,y=val)+geom_boxplot()
+```{r echo=FALSE, fig.width=8, fig.height=3}
+age_boxplot <- ggplot(atr[atr$cathegory=="age",])+aes(x=group,y=val)+geom_boxplot()
+age_boxplot <- age_boxplot + labs(x="Group", y="Age (days)")
+
+age_hist <- ggplot(atr[atr$cathegory=="age",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
+age_hist <- age_hist + labs(x="Age (days)", y="Count")
+
+grid.arrange(age_boxplot, age_hist, ncol=2)
+
 ```
+
 The boxplots show that most ants have similar ages, with the exception of the queen which is much older than the other ants. The groups do not seem to be different in age.
+<<<<<<< HEAD
 ```{r}
 ggplot(atr[atr$cathegory=="age",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("Age in days")
 ```
 The histogram shows a pike around the age of 300 days. Most ants are younger than 500 days and they are born in "waves".
-```{r}
+
+```{r echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
 atr_age<-atr[atr$cathegory=="age",]
 # The series are not normally distributed
-aggregate(val~group,data=atr_age,mean)
+mean_table_age <- aggregate(val~group,data=atr_age,mean)
 shapiro.test(atr_age$val[atr_age$group=="C"])
 shapiro.test(atr_age$val[atr_age$group=="F"])
 shapiro.test(atr_age$val[atr_age$group=="N"])
@@ -176,97 +204,102 @@ wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="F"])
 wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="N"])
 wilcox.test(atr_age$val[atr_age$group=="F"],atr_age$val[atr_age$group=="N"])
 ```
-
+```{r echo=FALSE}
+knitr::kable(mean_table_age)
+```
 There is no difference in mean age between the three groups.
+
 ## For the general network
 
 ```{r,echo=FALSE,results='hide'}
 g <- get_graph(colony = 1, day = 17)
 ```
 
-```{r,echo=FALSE,results='hide'}
+```{r,echo=FALSE,results='hide', fig.width=5, fig.height=3}
 degrees<-data.frame(degree=degree(g))
-ggplot(degrees)+aes(x=degree)+geom_histogram(binwidth = 10)+ggtitle("Histogram of the degrees")
+ggplot(degrees)+aes(x=degree)+geom_histogram(binwidth = 10)+ggtitle("Histogram of the degrees") + labs(x="Degree", y="Count")
 ```
-```{r,echo=FALSE}
-print("Distribution of the degrees: ")
-paste("[0-30] : ",length(degrees[degrees[,1]<=30,]))
-paste("(30-60] : ",length(degrees[degrees[,1]<=60,]))
-paste("(60-90] : ",length(degrees[degrees[,1]<=90&degrees[,1]>60,]))
-paste(">90 : ",length(degrees[degrees[,1]>90,]))
-paste("min : ",min(degrees))
-paste("max : ",max(degrees))
+```{r, echo=FALSE}
+out.df <- data.frame(
+  length(degrees[degrees[,1]<=30,]),
+  length(degrees[degrees[,1]<=60,]),
+  length(degrees[degrees[,1]<=90&degrees[,1]>60,]),
+  length(degrees[degrees[,1]>90,]),
+  min(degrees),
+  max(degrees)
+)
+colnames(out.df) <- c("[0-30]", "(30-60]", "(60-90]",  ">90", "Min", "Max" )
+knitr::kable(out.df, caption = "Distribution of the degrees")
 ```
+
 
 Most nodes have a rather higher degree (between 60 and 90) and there are some nodes with a lower value of the degree, thus we can infer that most ants had a higher number of contacts while some ants had less frequent meetings. There is a small number of nodes that has a very high degree (90 or over 90), they represent ants that had a lot of encounters. We must also note that no ant had less than 33 encounters.
 
-### Average Path Length and Diameter
-
-The average path length can show how connected the analyzed network is.In the case of our graph the value is aproximatively 1,31. Another measure of the connectivity of the graph is its diameter (the maximum of the series of shortest paths), the value of the indicator is: 5
-```{r}
-average.path.length(g)
-diameter(g)
-```
 
 ### Measures of Centrality
 
-```{r}
+```{r, echo=FALSE}
 deg <- centralization.degree(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),deg=deg$res[order(deg$res, decreasing = TRUE)])
-ggplot(deg)+aes(y=deg,x=index)+geom_col(width=1)+
+plot_deg_cent <- ggplot(deg)+aes(y=deg,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-?geom_col
-```
+plot_deg_cent <- plot_deg_cent + labs(title = "Degree Centrality", y="Value")
 
-```{r}
 deg <- centralization.closeness(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),closeness_centrality=deg$res[order(deg$res, decreasing = TRUE)])
-ggplot(deg)+aes(y=closeness_centrality,x=index)+geom_col(width=1)+
+plot_closeness_cent <- ggplot(deg)+aes(y=closeness_centrality,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-```
+plot_closeness_cent <- plot_closeness_cent + labs(title = "Closeness Centrality", y="Value")
 
-```{r}
 deg <- centralization.betweenness(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),betweenes_centrality=deg$res[order(deg$res, decreasing = TRUE)])
-ggplot(deg)+aes(y=betweenes_centrality,x=index)+geom_col(width=1)+
+plot_betweenness_cent <- ggplot(deg)+aes(y=betweenes_centrality,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-```
-In regard to betweeness centrality we can observe that one ant ranks far over the others, thus we can conclude that there is one ant that has a very central role in the network a conclusion we couldn't draw based on the other measures of centrality.
+plot_betweenness_cent <- plot_betweenness_cent + labs(title="Betweenness Centrality", y="Value")
 
-
-
-```{r}
 deg <- centralization.evcent(g)
 deg <- data.frame(index=factor(1:length(deg$vector),levels=1:length(deg$vector)),eigenvalue_centrality=deg$vector[order(deg$vector, decreasing = TRUE)])
-ggplot(deg)+aes(y=eigenvalue_centrality,x=index)+geom_col(width=1)+
+plot_ev_cent <- ggplot(deg)+aes(y=eigenvalue_centrality,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-```
-The eigenvalue centrality presents a decreasing structure although it is a smoother decrease compared to the one of the betweenes centrality, in this case we can find no node that is much more "central" that the others.
+plot_ev_cent <- plot_ev_cent + labs(title="Eigenvalue Centrality", y="Value")
 
-```{r}
 deg <- page.rank(g)
 deg <- data.frame(index=factor(1:length(deg$vector),levels=1:length(deg$vector)),page_rank=deg$vector[order(deg$vector, decreasing = TRUE)])
-ggplot(deg)+aes(y=page_rank,x=index)+geom_col(width=1)+
+plot_pr_cent <- ggplot(deg)+aes(y=page_rank,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
+plot_pr_cent <- plot_pr_cent + labs(title="Page Rank", y="Value")
 ```
+
+```{r, echo=FALSE, fig.width=10, fig.height=2}
+grid.arrange(plot_deg_cent, plot_closeness_cent, plot_betweenness_cent, plot_ev_cent, plot_pr_cent, ncol=5)
+```
+
+In regard to betweenness centrality we can observe that one ant ranks far over the others, thus we can conclude that there is one ant that has a very central role in the network a conclusion we couldn't draw based on the other measures of centrality.
+
+
+The eigenvalue centrality presents a decreasing structure although it is a smoother decrease compared to the one of the betweenes centrality, in this case we can find no node that is much more "central" that the others.
+
 The page rank of the nodes of the graph presents a structure in which there are several dominating nodes that have a much higher rank than the others.
 
-### Clustering Coefficient
+### Average Path Length, Diameter and Clustering Coefficient
 
-```{r}
+The average path length can show how connected the analyzed network is.In the case of our graph the value is approximately 1.31 (`average.path.length`). Another measure of the connectivity of the graph is its diameter (the maximum of the series of shortest paths), the value of the indicator is: 5 (`diameter`). The clustering coefficient of the whole graph is 0.776 (`transitivity`), we will compare it to those of the groups in the next sections.
+```{r echo=FALSE, results='hide'}
+average.path.length(g)
+diameter(g)
 transitivity(g)
 ```
-The clustering coefficient of the whole graph is 0.77, we will compare it to those of the groups in the next sections.
+
 
 ## By group
 
@@ -276,40 +309,31 @@ Before looking at the following summary statistics per group it is important to 
 
 The foragers have a rather wider spread of degrees compared to the other two groups. Most of them have a degree greater than 40. The other two groups are distributed very homogeneously. It is notable though that there is a hierarchy of degrees starting from the low degree group of nurses to the midrange group of cleaners over to the higher degree group of foragers.
 
-```{r echo=FALSE}
+```{r echo=FALSE, fig.width=7,fig.height=2}
 par(mfrow=c(1,3))
 tmp <- lapply(names(groups), function(u) hist(degree(groups[[u]]), freq = FALSE, 
                                        main = paste("Histogram of", u), xlab = "Degree"))
 ```
 
-```{r}
-par(mfrow=c(1,3))
-max(degree(groups[[1]]))
-length(degree_distribution(groups[[1]]))
-tmp <- lapply(groups, function(u){
-  deg_dist <- data.frame(value = degree_distribution(u), deg=1:(max(degree(u))+1))
-  ggplot(deg_dist) + aes(x=deg, y=value) + geom_point()
+```{r, echo=FALSE, fig.width=7,fig.height=2}
+tmp <- lapply(seq_along(groups), function(u){
+  deg_dist <- data.frame(value = degree_distribution(groups[[u]]), deg=1:(max(degree(groups[[u]]))+1))
+  p <- ggplot(deg_dist) + aes(x=deg, y=value) + geom_point()
+  p <- p + xlab("Degree") + ylab("Density") + labs(title=names(groups)[[u]])
+  return(p)
 })
-tmp
+grid.arrange(tmp[[1]], tmp[[2]], tmp[[3]], ncol=3)
 ```
 
 
 ### Connectivity and Components
 
-All separate groups are connected and thus, each of them form a big component.
-```{r}
+We can check the connectivity with the command `is_connected`. All separate groups are connected and thus, each of them form a big component.
+```{r echo=FALSE, results='hide'}
 lapply(groups, is_connected)
 ```
 
-
-### Average Path Length and Diameter
-
-The average path length can be an indicator of how connected a network is. Here the foragers and the cleaners have a similar average path length of around 1.12. In comparison the nurses have an average path length of 1.09, a bit smaller. All three groups are very well connected because most ants can reach any other ant of the same group in less than 2 steps. Moreover the groups have smaller average path lengths than the overall graph which suggests that the proposed grouping does indeed lead to more coherent groups. The diameter is the longest shortest path in a network and differs quite a bit in this network. The foragers have a diameter of 11, compared to the nurses with 7 and the cleaners with 4. This might be an indicator of a lower connection level in the group of the foragers. There exists at least one ant who has to go over 11 other ants in order to connect with another specially chosen ant. This is quite extreme considering the average path length is 1.12 in this group.
-```{r}
-lapply(groups, average.path.length)
-lapply(groups, diameter)
-```
-### Centrality Measures
+### Measures of Centrality
 
 We have considered many different centrality measures. Most of them have shown a rather homogeneous distribution, meaning there was no distinction possible between central nodes and less central nodes. For each group the following centrality measures were decreasing smoothly without any particular exceptional occurrences: degree centrality, closeness centrality and eigenvalue centrality. While this can indicate that in general there are no real distinct central nodes in the network we can still try to find some special ants w.r.t. other centrality measures.
 
@@ -344,47 +368,47 @@ We have considered many different centrality measures. Most of them have shown a
 
 Betweenness centrality: Here we see actually a decreasing structure in all three groups. Some ants lie on the paths connecting other ants. And some ants are rather unimportant in the network.  
 
-```{r}
+```{r echo=FALSE, fig.width=7, fig.height=2}
 par(mfrow=c(1,3))
 betw <- lapply(groups, centralization.betweenness)
 betw <- lapply(betw, function(u) u$res[order(u$res, decreasing = TRUE)])
-tmp <- lapply(names(betw), function(u) barplot(betw[[u]], main = paste("Betweenness centrality", u)))
+tmp <- lapply(names(betw), function(u) barplot(betw[[u]], main = paste("Betweenness centr.", u)))
 ```
 
 Pagerank: Here we can see that the foragers have a few ants who are very important w.r.t to this centrality measure. This could indicate that these ants are consulted by many other ants who themselves are consulted by many ants. 
-```{r}
+
+```{r echo=FALSE, fig.width=7, fig.height=2}
 par(mfrow=c(1,3))
 pagr <- lapply(groups, page.rank)
 pagr <- lapply(pagr, function(u) u$vector[order(u$vector, decreasing = TRUE)])
 tmp <- lapply(names(pagr), function(u) barplot(pagr[[u]], main = paste("Pagerank", u)))
 ```
 
-### Clustering Coefficient
-Very similar results again for the clustering coefficient. All groups are very highly connected.
-```{r}
-lapply(groups, transitivity)
-```
+### Average Path Length, Diameter and Clustering Coefficient
 
-## Summary table of descriptive measures
-
-```{r}
+```{r echo=FALSE, results='asis'}
 g.table <- data.frame(Global=c(average.path.length(g), diameter(g), transitivity(g)))
-row.names(g.table) <- c("APL", "Diameter", "Clustering")
+row.names(g.table) <- c("Average Path Length", "Diameter", "Clustering")
 apl.groups <- sapply(groups, average.path.length)
 diameter.groups <- sapply(groups, diameter)
 transitivity.groups <- sapply(groups, transitivity)
 
 per_group <- rbind(apl.groups, diameter.groups, transitivity.groups)
 g.table <- cbind(g.table, per_group)
-g.table
+stargazer(g.table, summary = FALSE, header = FALSE)
 ```
-We see that the average path length varies a bit from group to group and compared to the global one. The diameter varies a lot since we have each time potentially lost connections in the subnetworks. The clustering is globally smaller than in each group which supports the idea of those three communities in the graph.
+
+The average path length can be an indicator of how connected a network is. Here the foragers and the cleaners have a similar average path length of around 1.12. In comparison the nurses have an average path length of 1.09, a bit smaller. All three groups are very well connected because most ants can reach any other ant of the same group in less than 2 steps. Moreover the groups have smaller average path lengths than the overall graph which suggests that the proposed grouping does indeed lead to more coherent groups. The diameter is the longest shortest path in a network and differs quite a bit in this network. The foragers have a diameter of 11, compared to the nurses with 7 and the cleaners with 4. This might be an indicator of a lower connection level in the group of the foragers. There exists at least one ant who has to go over 11 other ants in order to connect with another specially chosen ant. This is quite extreme considering the average path length is 1.12 in this group.
+
+Very similar results do we obtain for the clustering coefficient. All groups are very highly connected.
+
+If we look at the global values we see that the average path length varies a bit from group to group compared to the global one. The diameter varies a lot since we have each time potentially lost connections in the subnetworks. The clustering is globally smaller than in each group which supports the idea of those three communities in the graph.
 
 ## K-means check
 
 ### Preparing the data
 
-```{r}
+```{r echo=FALSE, results='hide'}
 atributes<-vertex.attributes(g)
 to_cluster<-data.frame(
   id=atributes$name,
@@ -401,7 +425,7 @@ to_cluster<-na.omit(to_cluster)
 str(to_cluster)
 nrow(to_cluster)
 ```
-In the section above we selected the data that will be used for clustering and the auxiliary variables that will be used to check the quality of the model. The data to be used for clustering is: 
+We selected the data that will be used for clustering and the auxiliary variables that will be used to check the quality of the model. The data to be used for clustering is: 
 
 * The score of the interactions with the queen
 
@@ -419,7 +443,7 @@ In the section above we selected the data that will be used for clustering and t
 
 In addition we also kept the id and the group (decided of the authors of the study) of each ant.
 
-```{r}
+```{r echo=FALSE, fig.width=4, fig.height=2}
 to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
 models<-lapply(1:10,function(i){kmeans(to_cluster2,i)})
 sum_withinn<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$tot.withinss}))
@@ -432,11 +456,14 @@ sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_
 to_plot<-rbind(sum_withinn,sum_between)
 ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()
 ```
-We first analised the within group error of the clustering per number of considered groups and we conlcuded that as there is no definite point where to make a cut the most suitable number of groups is 3 as it would allow us to compare with the groups fitted by the authors of the study.
-```{r}
+
+We first analyzed the within group error of the clustering per number of considered groups and we conlcuded that as there is no definite point where to make a cut the most suitable number of groups is 3 as it would allow us to compare with the groups fitted by the authors of the study.
+
+```{r echo=FALSE}
 model3<-models[[3]]
 to_cluster3<-data.frame(to_cluster,found_labels=model3$cluster)
-table(to_cluster3$group,to_cluster3$found_labels)
+tab <- table(to_cluster3$group,to_cluster3$found_labels)
+knitr::kable(tab, caption = "Clustering result")
 ```
 
 The results of the k-means clustering were quite underwhelming as the model did not fit groups close to those fitted by the authors of the study. The clustering faze was just a first look we will proceed to use graph-specific statistical models that will allow us to have a more conclusive conclusions weather the results of the study can be validated or not. 
@@ -446,7 +473,7 @@ The results of the k-means clustering were quite underwhelming as the model did 
 To get some more insights into how the network is organized and to understand the underlying creating behavior of the network we can try to model it. There are several ways of modeling a network. We will focus on random networks and exponential random graph models (ERGMs).
 However, we considered other network models as well but they depend on restrictions which are not fulfilled in this network. This includes exemplary the normality assumption for correlation networks and gaussian graphical models. Correlation networks are based on the attributes of the network. If the correlation between two nodes and their corresponding attributes is high, we expect an edge between them. The attributes are assumed to be normally distributed. AS one can see in the following plot this assumption can not hold very much. Additionally, a Shapiro-Wilk-Tests showed that none of the attributes are distributed normally. 
 
-```{r}
+```{r echo=FALSE, fig.width=4, fig.height=3}
 g.size <- V(g)$body_size
 g.age <- V(g)$`age(days)`
 g.forage <- V(g)$nb_foraging_events
@@ -460,16 +487,19 @@ g.attr <- data.frame("size" = g.size, "age" = g.age, "forage" = g.forage,
                      "queen" = g.queen)
 
 qqnorm(as.matrix(g.attr))
-
-shap.tests <- apply(g.attr, 2, shapiro.test)
-sapply(shap.tests, function(u) u$p.value)
-
 ```
+
+```{r echo=FALSE}
+shap.tests <- apply(g.attr, 2, shapiro.test)
+p_vals <- t(sapply(shap.tests, function(u) u$p.value))
+knitr::kable(p_vals, caption = "P-Values for Shapiro-Wilk-Tests")
+```
+
 ## Erdos-Renyi
 
 Thus we decided to focus on simpler models. To conduct the network w.r.t. the three properties clustering coefficient, diameter and average path length, we are using an Erdos-Renyi model. This one showed, compared to the other possible modeling solutions the best results. In an Erdos-Renyi graph is a graph where each pair of nodes is connected independently with probability $p$. It is assumed to be undirected. To create an Erdos-Renyi graph based on our given network we can take two network characteristics into account: The number of nodes $n$ and the proportion of edges $E$ w.r.t. the possible number of edges in the network: $p=\frac{E}{n(n-1)/2}$. With these values we can then create an Erdos-Renyi graph based on $n$ and $p$. For the given network we find $n=99$ and $p=0.689$.
 
-```{r}
+```{r echo=FALSE }
 set.seed(42)
 e <- ecount(g)
 n <- vcount(g)
@@ -507,9 +537,10 @@ for (i in 1:len){
   di[i,2]=mean(ditemp)
 }
 
+
 to_plot<-rbind(cl,apl,di)
 ggplot(to_plot)+aes(x=index,y=values,colour=indicator)+geom_line()
-to_plot
+
 best_cl <- steps[which.min(abs(cl[,2]-cl.g))]
 best_apl <- steps[which.min(abs(apl[,2]-apl.g))]
 best_di <- steps[which.min(abs(di[,2]-di.g))]
@@ -517,6 +548,11 @@ best_di <- steps[which.min(abs(di[,2]-di.g))]
 cl.opt <- cl[which.min(abs(cl[,2]-cl.g)),2]
 apl.opt <- apl[which.min(abs(apl[,2]-apl.g)),2]
 di.opt <- di[which.min(abs(di[,2]-di.g)),2]
+
+
+p_table <- cbind("p"=steps,"Clustering"=cl, "APL"=apl, "Diameter"=di)
+knitr::kable(p_table, digits = 3)
+
 ```
 
 We see then, that we get three different values for $p$ depending of the criterion on which we try to optimize $p$. If we look at the clustering coefficient we find $p=0.8$ to be the closest to the original network's clustering coefficient. In contrast we find $p=0.7$ for the average path length and $p=0.1$ for the diameter. We can observe that the chosen $p=0.689$ is somehow close to the ones for the average path length and the diameter. We note in particular that the diameter behaves quite differently for varying $p$ compared to the other two properties. In order to get a high diameter we need to have a very small $p$. In contrast to that the other two properties seem to fit quite well with the original network and it's value of $p$.
@@ -524,7 +560,7 @@ We see then, that we get three different values for $p$ depending of the criteri
 
 Additionally, we can do a monte carlo simulation to check if it is probable the our observed network is coming from this distribution.
 
-```{r}
+```{r echo=FALSE}
 ## Simulation
 set.seed(9)
 n_sim <- 1000
@@ -538,21 +574,24 @@ for (i in 1:n_sim){
   di.sim[i] <- diameter(g.temp)
 }
 
-mean(cl.sim > cl.g)
-mean(apl.sim > apl.g)
-mean(di.sim > di.g)
+m.cl <- mean(cl.sim > cl.g)
+m.apl <- mean(apl.sim > apl.g)
+m.di <- mean(di.sim > di.g)
+
+out.m <- cbind("Clustering"=m.cl, "APL"=m.apl, "Diameter"=m.di)
+knitr::kable(out.m, digits = 3, caption = "% of more extrem occurences in simulations")
 ```
 We observe that the probability to get a clustering coefficient that is greater than our observed graph is close to 0. Similarly for the diameter of the graph. However, the average path length is not that clear. 50.7% of the sampled graphs hat a higher average path length than the observed one. This shows that the model is still not perfectly fitting. But with respect to the clustering coefficient we have an acceptable model. 
 
 If we consider the Erdos-Renyi model we can state that the network is based on a purely random fashion. The ants seem to connect at random. But we need to keep in mind that the model is not perfect w.r.t the properties average path length and diameter. Furthermore, we could surely look at more properties of the network and take them as reference measures as well. 
 
-## ERGM
+## Exponential Random Graph Models
 
 To capture a bit more in detail the underlying process of the network we can try to make use of an ERGM. This allows us to take the categorical attributes into account. We can take the groups as the most important attribute and have a look at the resulting models. An ERGM model models a graph which is distributed according to a distribution which belongs to an exponential family. Again we have the number of nodes fixed and try to find a probability of an edge between two nodes. However, in contrast to the Erdos-Renyi graph we take into account the attributes of the network. Thus we can make inference about the edges when we look at two specific nodes. If node $X$ is of class $A$ and node $Y$ of class $B$ the probability of a tie between those two might be different compared to the case where both nodes are from the same class.
 
-When creating a model we can first just look at the edges. We do not include any attributes yet. 
+When creating a model we can first just look at the edges. We do not include any attributes yet. We make use of the function `ergm` and need to use `plogis` to transform the coefficients to probabilities.
 
-```{r}
+```{r echo=FALSE, results='hide', message=FALSE}
 ### ERGM models
 library(network)
 library(ergm)
@@ -560,26 +599,30 @@ library(intergraph)
 
 g.network <- asNetwork(g)
 edge.indep <- ergm(g.network ~ edges) 
+```
 
-summary(edge.indep)
-edge.indep$coef[1]
+```{r echo=FALSE, message=FALSE, results='hide'}
+indep.summary <- summary(edge.indep)
+#edge.indep$coef[1]
 plogis(coef(edge.indep))
 # Nodes have a 68.9% chance of being connected
 ```
+
 The probability for an edge between two nodes regardless of their attributes is $0.689$. This is exactly the same as we found earlier.
 
-If we now introduce the attribute *group* and check for the matching probability we find:
-```{r}
+If we now introduce the attribute *group* and check for the matching probability we find $0.88$.
+```{r echo=FALSE, message=FALSE, results='hide'}
 edge.group <- ergm(g.network ~ edges + nodematch("group")) 
-summary(edge.group)
+group.summary <- summary(edge.group)
 
 plogis(coef(edge.group)[1] + coef(edge.group)[2])
 # Nodes of the same group have a 88% chance of being connected
 ```
 
+
 This means that nodes who have the same group have a much higher probability of having a tie: $p=0.88$. This confirms what was found in the paper. To check the validity of the model we can check the goodness of fit.
 
-```{r}
+```{r include=FALSE}
 #gof.edge.group=gof(edge.group)
 #plot(gof.edge.group)
 ```
@@ -593,10 +636,12 @@ In general we can say that the given models do not fit the network very well. We
 
 # Key points and conclusions
 
-In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the cervices. During that faze we found which were the main characteristics included by the data, created plots and did statistical testing on them i order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our projects we created a k-mean model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models the Erdos-Renyi random graph, the model produced results quite close to those of the original graph we analyzed. After a first check we implemented a cross-validation algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph.
+In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the cervices. During that faze we found which were the main characteristics included by the data, created plots and did statistical testing on them i order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our projects we created a k-mean model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models the Erdos-Renyi random graph, the model produced results quite close to those of the original graph we analyzed. After a first check we implemented a cross-validation algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph. Then we did a Monte Carlo Simulation in order to determine if our network can be considered a random graph. The results show that it is a random graph though one imperfect w.r.t the properties average path length and diameter. In this case a further modeling of the graph is 
 
+# Statement of Division of Labor
 
-
+*Jan Lennartz*: 
+I performed the statistical analysis by group and took care of the main plot of the network. I conducted the different models and analyzed the ER and ERGM models. Additionally, I introduced our main questions.
 
 
 
