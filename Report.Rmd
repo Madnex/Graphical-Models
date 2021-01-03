@@ -15,6 +15,7 @@ library(gridExtra)
 library(DT)
 ```
 \newpage
+\setcounter{tocdepth}{1}
 \tableofcontents
 \newpage
 
@@ -522,9 +523,9 @@ set.seed(30)
 steps=seq(0,1,0.005)
 steps<-steps[-1]
 len=length(steps)
-cl=data.frame(indicator=rep("cl",len),values=rep(0,len),index=steps)
-apl=data.frame(indicator=rep("apl",len),values=rep(0,len),index=steps)
-di=data.frame(indicator=rep("di",len),values=rep(0,len),index=steps)
+cl=data.frame(indicator=rep("cl",len),values=rep(0,len),p=steps)
+apl=data.frame(indicator=rep("apl",len),values=rep(0,len),p=steps)
+di=data.frame(indicator=rep("di",len),values=rep(0,len),p=steps)
 ntrials=100
 for (i in 1:len){
   cltemp=numeric(ntrials)
@@ -542,8 +543,11 @@ for (i in 1:len){
 }
 
 
-to_plot<-rbind(cl,apl,di)
-ggplot(to_plot)+aes(x=index,y=values,colour=indicator)+geom_line()
+to_plot<-rbind(cl[10:len,],apl[10:len,],di[10:len,])
+ggplot(to_plot)+aes(x=p,y=values,colour=indicator)+geom_line()+geom_vline(xintercept = 0.689)+
+  geom_hline(yintercept = 5,colour="blue",linetype="dashed")+
+  geom_hline(yintercept = 1.31107,colour="red",linetype="dashed")+
+  geom_hline(yintercept = 0.7758672,colour="green",linetype="dashed")
 
 best_cl <- steps[which.min(abs(cl[,2]-cl.g))]
 best_apl <- steps[which.min(abs(apl[,2]-apl.g))]
@@ -553,9 +557,6 @@ cl.opt <- cl[which.min(abs(cl[,2]-cl.g)),2]
 apl.opt <- apl[which.min(abs(apl[,2]-apl.g)),2]
 di.opt <- di[which.min(abs(di[,2]-di.g)),2]
 
-
-p_table <- cbind("p"=steps,"Clustering"=cl, "APL"=apl, "Diameter"=di) # Too big table, sure you want to keep it?
-knitr::kable(p_table, digits = 3)
 
 ```
 
