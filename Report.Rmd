@@ -82,10 +82,10 @@ ecount(g)
 ```
 
 ```{r echo=FALSE, fig.height=4}
-to_table<-head(do.call(cbind,vertex.attributes(g)))
-tab <- t(to_table[-1,])
-colnames(tab) <- c("1", "2", "3", "4", "5")
-knitr::kable(tab, digits = 2, caption="Excerpt of the attributes")
+#to_table<-head(do.call(cbind,vertex.attributes(g)))
+#tab <- t(to_table[-1,])
+#colnames(tab) <- c("1", "2", "3", "4", "5")
+#knitr::kable(tab, digits = 2, caption="Excerpt of the attributes")
 ```
 Each vertex has also a set of attributes like:
 
@@ -98,6 +98,8 @@ Each vertex has also a set of attributes like:
 * The age of the ant (measured in days)
 
 * The body size of the ant (in mm)
+
+Outside of these listed attributes there are more variables in the data that will be used during our analisys. 
 
 ### Plot
 
@@ -180,14 +182,14 @@ atr<-atr[atr$group!="",]
 str(atr)
 ```
 
-### Body size
+### Body Size
 
 ```{r echo=FALSE, fig.width=7, fig.height=2}
 body_size_boxplot <- ggplot(atr[atr$cathegory=="size",])+aes(x=group,y=val)+geom_boxplot()
-body_size_boxplot <- body_size_boxplot + labs(x="Group", y="Size (mm)")
+body_size_boxplot <- body_size_boxplot + labs(x="Group", y="Size (mm)",title="Boxplot of Body Size")
 
 body_size_hist <- ggplot(atr[atr$cathegory=="size",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
-body_size_hist <- body_size_hist + labs(x="Size (mm)", y="Count")
+body_size_hist <- body_size_hist + labs(x="Size (mm)", y="Count",title="Histogram of Body Size")
 
 grid.arrange(body_size_boxplot, body_size_hist, ncol=2)
 
@@ -207,7 +209,7 @@ results$Shapiro_pi[i]<-temp$p.value
 colnames(results) <- c("Group", "Average Size", "Shapiro p-val")
 results_size <- results
 # The series are not that different
-wt_size_cf <- wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="F"]) #to discuss
+wt_size_cf <- wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="F"]) 
 wt_size_cn <- wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="N"])
 wt_size_fn <- wilcox.test(atr_size$val[atr_size$group=="F"],atr_size$val[atr_size$group=="N"])
 ```
@@ -219,10 +221,10 @@ As the data for body size for ants in groups C and F is not normally distributed
 
 ```{r echo=FALSE, fig.width=7, fig.height=2}
 age_boxplot <- ggplot(atr[atr$cathegory=="age",])+aes(x=group,y=val)+geom_boxplot()
-age_boxplot <- age_boxplot + labs(x="Group", y="Age (days)")
+age_boxplot <- age_boxplot + labs(x="Group", y="Age (days)",title="Boxplot of Age")
 
-age_hist <- ggplot(atr[atr$cathegory=="age",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
-age_hist <- age_hist + labs(x="Age (days)", y="Count")
+age_hist <- ggplot(atr[atr$cathegory=="age",])+aes(x=val)+geom_histogram(binwidth=10)
+age_hist <- age_hist + labs(x="Age (days)", y="Count",title="Boxplot of Age")
 
 grid.arrange(age_boxplot, age_hist, ncol=2)
 
@@ -245,9 +247,9 @@ results$Shapiro_pi[i]<-temp$p.value
 colnames(results) <- c("Group", "Average Age", "Shapiro p-val")
 results_age <- results
 # The series are not that different
-wt_age_cf <- wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="F"])
-wt_age_cn <- wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="N"])
-wt_age_fn <- wilcox.test(atr_age$val[atr_age$group=="F"],atr_age$val[atr_age$group=="N"])
+wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="F"])
+wilcox.test(atr_age$val[atr_age$group=="C"],atr_age$val[atr_age$group=="N"])
+wilcox.test(atr_age$val[atr_age$group=="F"],atr_age$val[atr_age$group=="N"])
 ```
 
 The Wilcoxon rank test shows again that there is no difference in mean age between the three groups.
@@ -257,7 +259,7 @@ knitr::kable(list("Shapiro Tests Age"=results_age, "Shapiro Tests Size"=results_
 ```
 
 
-## For the general network
+## For the General Network
 
 ```{r,echo=FALSE,results='hide'}
 g <- get_graph(colony = 1, day = 17)
@@ -265,7 +267,7 @@ g <- get_graph(colony = 1, day = 17)
 
 ```{r,echo=FALSE,results='hide', fig.width=4, fig.height=2, fig.align='center'}
 degrees<-data.frame(degree=degree(g))
-ggplot(degrees)+aes(x=degree)+geom_histogram(binwidth = 10)+ggtitle("Histogram of the degrees") + labs(x="Degree", y="Count")
+ggplot(degrees)+aes(x=degree)+geom_histogram(binwidth = 10)+ggtitle("Histogram of the Degrees") + labs(x="Degree", y="Count")
 ```
 ```{r, echo=FALSE}
 out.df <- data.frame(
@@ -349,7 +351,7 @@ transitivity(g)
 ```
 
 
-## By group
+## By Group
 
 Before looking at the following summary statistics per group it is important to know about the size of each group. There are 50 ants in the group foragers, 27 cleaners and 18 are nurses. This means the following results need to be considered under the fact of this unequal distribution of group members.
 
@@ -452,9 +454,9 @@ Very similar results do we obtain for the clustering coefficient. All groups are
 
 If we look at the global values we see that the average path length varies a bit from group to group compared to the global one. The diameter varies a lot since we have each time potentially lost connections in the subnetworks. The clustering is globally smaller than in each group which supports the idea of those three communities in the graph.
 
-## K-means check
+## K-means Check
 
-### Preparing the data
+### Preparing the Data
 
 ```{r echo=FALSE, results='hide'}
 atributes<-vertex.attributes(g)
@@ -502,7 +504,7 @@ sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_
 #                   name=rep("total error",nrow(sum_between)),
 #                   value=sum_between$value+sum_withinn$value)
 to_plot<-rbind(sum_withinn,sum_between)
-ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()
+ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()+xlab("Number of Groups")
 ```
 
 We first analyzed the within group error of the clustering per number of considered groups and we concluded that as there is no definite point where to make a cut the most suitable number of groups is 3 as it would allow us to compare with the groups fitted by the authors of the study.
@@ -604,7 +606,7 @@ ggplot(to_plot)+aes(x=p,y=values,colour=indicator)+geom_line()+geom_vline(xinter
   theme(legend.title = element_blank())+
   scale_linetype_manual(name = "limit", values = c(2, 2, 2), 
                       guide = guide_legend(override.aes = list(color = c("blue", "red", "green"))))+
-  labs(title = "Evaluation of different values for p")
+  labs(title = "Evaluation of Different Values for p")
 ```
 
 
@@ -690,13 +692,13 @@ As we can see the result is not very accurate. With respect to the minimum geode
 
 In general we can say that the given models do not fit the network very well. We do not show the other models here that were tried but did perform even worse. This could be caused by an unusual behavior of the network. It might be very difficult to find a good fitting model. There seems to be a lot of randomness besides from some structure going on in the network. Even though we could not find a perfect model, the proposed models indicate that the network is very densely connected and that the groups that were found are reasonable.
 
-## Information propagation using flooding
+## Information Propagation Using Flooding
 
-During the project we also wanted to check the speed with which information propagates in the graph. In order to do that we chose a flooding algorithm. This algorithm works by choosing a starting vertex and then considering that that vertex sends a message to all the others it is connected with. At the next step the vertexes that receive the message send it forward in a similar fashion and the process is repeated until all the vertexes have received the messages. After researching the subject we decided against using this approach due to the high connectivity of our graph (there are 99 vertexes and over 3000 edges), which we thought would yield unreliable results. 
+During the project we also wanted to check the speed with which information propagates in the graph. In order to do that we chose a flooding algorithm. This algorithm works by choosing a starting vertex and then considering that that vertex sends a message to all the others it is connected with. At the next step the vertexes that receive the message send it forward in a similar fashion and the process is repeated until all the vertexes have received the messages. After researching the subject we decided against using this approach due to the high connectivity of our graph (there are 99 vertexes and over 3000 edges), which we thought would yield unreliable results. For understanding the topic we used two sources: [@floodingpaper] and [@floodinglink]
 
-# Key points and conclusions
+# Key Points and Conclusions
 
-### Key points
+### Key Points
 
 In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the vertices. During that phase we found the main characteristics included by the data, created plots and did statistical testing on them in order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our project we created a k-means model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models. The Erdos-Renyi random graph model produced results quite close to those of the original graph we analyzed. After a first check we implemented a grid-search algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph. Then we did a Monte Carlo Simulation in order to determine if our network can be considered a random graph. The results show that it is a random graph though one imperfect w.r.t the properties clustering coefficient and diameter. In this case a further modeling of the graph is required, thus we tried to use exponential random graph models which yielded mixed results.
 
