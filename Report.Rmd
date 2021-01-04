@@ -39,7 +39,8 @@ references:
   issued:
     year: 2002
 - id: floodinglink
-  title: https://www.cs.yale.edu/homes/aspnes/pinewiki/Flooding.html
+  title: Flooding
+  url: https://www.cs.yale.edu/homes/aspnes/pinewiki/Flooding.html
 ---
 ```{r echo=FALSE,results='hide', message=FALSE}
 library(curl)
@@ -168,13 +169,13 @@ atributes<-vertex.attributes(g)
 atributes1<-data.frame(
   id=atributes$name,
   group=atributes$group,
-  cathegory=rep("age",length(atributes$name)),
+  category=rep("age",length(atributes$name)),
   val=atributes$`age(days)`
 )
 atributes2<-data.frame(
   id=atributes$name,
   group=atributes$group,
-  cathegory=rep("size",length(atributes$name)),
+  category=rep("size",length(atributes$name)),
   val=atributes$body_size
 )
 atr<-rbind(atributes1,atributes2)
@@ -185,10 +186,10 @@ str(atr)
 ### Body Size
 
 ```{r echo=FALSE, fig.width=7, fig.height=2}
-body_size_boxplot <- ggplot(atr[atr$cathegory=="size",])+aes(x=group,y=val)+geom_boxplot()
+body_size_boxplot <- ggplot(atr[atr$category=="size",])+aes(x=group,y=val)+geom_boxplot()
 body_size_boxplot <- body_size_boxplot + labs(x="Group", y="Size (mm)",title="Boxplot of Body Size")
 
-body_size_hist <- ggplot(atr[atr$cathegory=="size",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
+body_size_hist <- ggplot(atr[atr$category=="size",])+aes(x=val)+geom_histogram(binwidth=10)+xlab("size")
 body_size_hist <- body_size_hist + labs(x="Size (mm)", y="Count",title="Histogram of Body Size")
 
 grid.arrange(body_size_boxplot, body_size_hist, ncol=2)
@@ -198,7 +199,7 @@ It can be easily seen that the queen has a much greater body size than the ants 
 
 
 ```{r echo=FALSE, message=FALSE}
-atr_size<-atr[atr$cathegory=="size",]
+atr_size<-atr[atr$category=="size",]
 # The series are not normally distributed with the exception of group "N"
 mean_table_size <- aggregate(val~group,data=atr_size,mean)
 results<-data.frame(group=mean_table_size$group[1:3],av_size=mean_table_size$val[1:3],Shapiro_pi=rep(0,3))
@@ -220,10 +221,10 @@ As the data for body size for ants in groups C and F is not normally distributed
 ### Age
 
 ```{r echo=FALSE, fig.width=7, fig.height=2}
-age_boxplot <- ggplot(atr[atr$cathegory=="age",])+aes(x=group,y=val)+geom_boxplot()
+age_boxplot <- ggplot(atr[atr$category=="age",])+aes(x=group,y=val)+geom_boxplot()
 age_boxplot <- age_boxplot + labs(x="Group", y="Age (days)",title="Boxplot of Age")
 
-age_hist <- ggplot(atr[atr$cathegory=="age",])+aes(x=val)+geom_histogram(binwidth=10)
+age_hist <- ggplot(atr[atr$category=="age",])+aes(x=val)+geom_histogram(binwidth=10)
 age_hist <- age_hist + labs(x="Age (days)", y="Count",title="Boxplot of Age")
 
 grid.arrange(age_boxplot, age_hist, ncol=2)
@@ -235,7 +236,7 @@ The boxplots show that most ants have similar ages, with the exception of the qu
 The histogram shows a pike around the age of 300 days. Most ants are younger than 500 days and they are born in "waves".
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
-atr_age<-atr[atr$cathegory=="age",]
+atr_age<-atr[atr$category=="age",]
 # The series are not normally distributed
 mean_table_age <- aggregate(val~group,data=atr_age,mean)
 results<-data.frame(group=mean_table_age$group[1:3],
@@ -294,6 +295,8 @@ knitr::kable(out.df, caption = "Distribution of the degrees")
 
 
 ### Measures of Centrality
+
+We would first like to know if any ant is occupying a more "central" role than the others in the group regardless of its group. In order to find that out we used the measures of centrality we studied in the course.
 
 ```{r, echo=FALSE}
 deg <- centralization.degree(g)
