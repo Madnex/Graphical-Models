@@ -59,11 +59,11 @@ library(DT)
 
 Ant colonies have a complex and fascinating social structure that may bring answers to a multitude of scientific questions. Usually the nests are organized in a stratified manner with a queen at the center and numerous workers doing tasks needed for the upkeep of the colony. The study [@antpaper] for which the data we worked on was collected sought to understand the social structure of *Camponotus fellah* ants: What are the groups inside the colonies and what factors define them. 
 
-## The data
+## The Data
 
 The original data of the study consist of more than 9 million observed interactions between ants collected for 41 days from ants belonging to 6 colonies. For our project we decided to work on a specific graph for a given day and network. Our random choice was day 17 and colony 1. All following work will be based on this sample graph and thus only, represents a small example of the whole experiment.
 
-### Preliminary data exploration
+### Preliminary Data Exploration
 
 In the following section we will show how the data is structured for the single colony and the single day (namely day 17, colony 1). We will start by loading the data using the `get_graph` function that we built previously and is attached to this project.
 
@@ -144,11 +144,11 @@ tmp <- lapply(seq_along(groups), function(u){
 
 As we can see the foragers and cleaners groups contain more ants than the nurses group and they also contain more interactions. The nurses seem to be less connected and are structured a bit differently compared to the other groups.
 
-## The original paper
+## The Original Paper
 
 The original paper was written by: Danielle P. Mersch, Alessandro Crespi and Laurent Keller and explores questions related to how can we separate ant colonies into groups and what makes ants change the group they belong to. During their study they found 3 main groups based on the interactions between ants and concluded that age is the main factor that determines ants to change the group they are part of. All colonies studied had 4-years old queens and between 122 and 192 workers per colony. Each ant was marked and followed individually and an interaction between two ants were defined by the fact that "the front end of one ant was located within thetrapezoidal shape representing the other ant".
 
-## Our questions
+## Our Questions
 
 The goal of this work is to conduct the given data set w.r.t. various aspects. Furthermore, a validation of the key results of the original paper is carried out. For this the chosen sample colony is used. On this network the analysis is to be done.
 
@@ -261,6 +261,12 @@ knitr::kable(list("Shapiro Tests Age"=results_age, "Shapiro Tests Size"=results_
 
 ## For the General Network
 
+First we will have a look of the data as a whole in order to be able to understand its general distribution and the connectivity between all the ants in the colony. We will analyze the distribution of the degrees, the measures of centrality and the average path length.
+
+### Histogram of the Degrees
+
+Most nodes have a rather higher degree (between 60 and 90) and there are some nodes with a lower value of the degree, thus we can infer that most ants had a higher number of contacts while some ants had less frequent meetings. There is a small number of nodes that has a very high degree (over 90), they represent ants that had a lot of encounters. We must also note that no ant had less than 33 encounters.
+
 ```{r,echo=FALSE,results='hide'}
 g <- get_graph(colony = 1, day = 17)
 ```
@@ -283,7 +289,7 @@ knitr::kable(out.df, caption = "Distribution of the degrees")
 ```
 
 
-Most nodes have a rather higher degree (between 60 and 90) and there are some nodes with a lower value of the degree, thus we can infer that most ants had a higher number of contacts while some ants had less frequent meetings. There is a small number of nodes that has a very high degree (over 90), they represent ants that had a lot of encounters. We must also note that no ant had less than 33 encounters.
+
 
 
 ### Measures of Centrality
