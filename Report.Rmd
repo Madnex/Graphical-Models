@@ -238,7 +238,8 @@ The histogram shows a pike around the age of 300 days. Most ants are younger tha
 atr_age<-atr[atr$cathegory=="age",]
 # The series are not normally distributed
 mean_table_age <- aggregate(val~group,data=atr_age,mean)
-results<-data.frame(group=mean_table_age$group[1:3],av_size=mean_table_age$val[1:3],Shapiro_pi=rep(0,3))
+results<-data.frame(group=mean_table_age$group[1:3],
+                    av_size=mean_table_age$val[1:3],Shapiro_pi=rep(0,3))
 for(i in 1:3){
 temp<-shapiro.test(atr_age$val[atr_age$group==results$group[i]])
 results$Shapiro_pi[i]<-temp$p.value
@@ -253,8 +254,9 @@ wilcox.test(atr_age$val[atr_age$group=="F"],atr_age$val[atr_age$group=="N"])
 
 The Wilcoxon rank test shows again that there is no difference in mean age between the three groups.
 
-```{r echo=FALSE}
-knitr::kable(list("Shapiro Tests Age"=results_age, "Shapiro Tests Size"=results_size), caption = "Shapiro Test Results") #to discuss
+```{r echo=FALSE }
+knitr::kable(list("Shapiro Tests Age"=results_age, "Shapiro Tests Size"=results_size),
+             caption = "Shapiro Test Results")
 ```
 
 
@@ -501,12 +503,17 @@ In addition we also kept the id and the group (decided of the authors of the stu
 ```{r echo=TRUE, fig.width=4, fig.height=2, fig.align='center'}
 to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
 models<-lapply(1:10,function(i){kmeans(to_cluster2,i)})
-sum_withinn<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$tot.withinss}))
-sum_withinn<-data.frame(index=1:nrow(sum_withinn),name=rep("withiness",nrow(sum_withinn)),value=sum_withinn)
-sum_between<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$betweenss}))
-sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_between)),value=sum_between)
+sum_withinn<-do.call(rbind,lapply(1:length(models),
+                                  function(i){models[[i]]$tot.withinss}))
+sum_withinn<-data.frame(index=1:nrow(sum_withinn),
+                        name=rep("withiness",nrow(sum_withinn)),value=sum_withinn)
+sum_between<-do.call(rbind,lapply(1:length(models),
+                                  function(i){models[[i]]$betweenss}))
+sum_between<-data.frame(index=1:nrow(sum_between),
+                        name=rep("betweenes",nrow(sum_between)),value=sum_between)
 to_plot<-rbind(sum_withinn,sum_between)
-ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()+labs(x="Number of Groups", y="Error",title="Decomposition of the Error")
+ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()+
+  labs(x="Number of Groups", y="Error",title="Decomposition of the Error")
 ```
 
 We first analyzed the within group error of the clustering per number of considered groups and we concluded that as there is no definite point where to make a cut the most suitable number of groups is 3 as it would allow us to compare with the groups fitted by the authors of the study.
@@ -598,7 +605,7 @@ di.opt <- di[which.min(abs(di[,2]-di.g)),2]
 
 ```
 
-```{r echo=FALSE, fig.width=5, fig.height=3, fig.align='center'}
+```{r echo=FALSE, fig.width=5, fig.height=2.5, fig.align='center'}
 to_plot<-rbind("Clustering" = cl, "APL"=apl,"Diameter"=di)
 ggplot(to_plot)+aes(x=p,y=values,colour=indicator)+geom_line()+geom_vline(xintercept = 0.689)+
   geom_hline(aes(yintercept = 5,  linetype = "Obs. Diameter"),colour="blue")+
