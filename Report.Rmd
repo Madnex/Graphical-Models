@@ -295,7 +295,7 @@ plot_deg_cent <- ggplot(deg)+aes(y=deg,x=index)+geom_col(width=1)+
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-plot_deg_cent <- plot_deg_cent + labs(title = "Degree Centrality", y="Value")
+plot_deg_cent <- plot_deg_cent + labs(title = "Degree Centr.", y="Value")
 
 deg <- centralization.closeness(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),closeness_centrality=deg$res[order(deg$res, decreasing = TRUE)])
@@ -303,7 +303,7 @@ plot_closeness_cent <- ggplot(deg)+aes(y=closeness_centrality,x=index)+geom_col(
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-plot_closeness_cent <- plot_closeness_cent + labs(title = "Closeness Centrality", y="Value")
+plot_closeness_cent <- plot_closeness_cent + labs(title = "Closeness Centr.", y="Value")
 
 deg <- centralization.betweenness(g)
 deg <- data.frame(index=factor(1:length(deg$res),levels=1:length(deg$res)),betweenes_centrality=deg$res[order(deg$res, decreasing = TRUE)])
@@ -311,7 +311,7 @@ plot_betweenness_cent <- ggplot(deg)+aes(y=betweenes_centrality,x=index)+geom_co
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-plot_betweenness_cent <- plot_betweenness_cent + labs(title="Betweenness Centrality", y="Value")
+plot_betweenness_cent <- plot_betweenness_cent + labs(title="Betwn. Centr.", y="Value")
 
 deg <- centralization.evcent(g)
 deg <- data.frame(index=factor(1:length(deg$vector),levels=1:length(deg$vector)),eigenvalue_centrality=deg$vector[order(deg$vector, decreasing = TRUE)])
@@ -319,7 +319,7 @@ plot_ev_cent <- ggplot(deg)+aes(y=eigenvalue_centrality,x=index)+geom_col(width=
   theme(axis.title.x = element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
-plot_ev_cent <- plot_ev_cent + labs(title="Eigenvalue Centrality", y="Value")
+plot_ev_cent <- plot_ev_cent + labs(title="Eigenval. Centr.", y="Value")
 
 deg <- page.rank(g)
 deg <- data.frame(index=factor(1:length(deg$vector),levels=1:length(deg$vector)),page_rank=deg$vector[order(deg$vector, decreasing = TRUE)])
