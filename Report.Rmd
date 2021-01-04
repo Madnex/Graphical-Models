@@ -21,6 +21,25 @@ references:
   type: article-journal
   issued:
     year: 2013
+- id: floodingpaper
+  title: The flooding time in random graphs
+  author:
+  - family: van de Hofstad
+    given: Remco
+  - family: Hooghiemstra
+    given: Gerard
+  - family: Van Mieghem
+    given: Piet
+  container-title: Extremes
+  volume: 5
+  DOI: 10.1023/A:1022175620150
+  publisher: Extremes
+  page: 111-129
+  type: article-journal
+  issued:
+    year: 2002
+- id: floodinglink
+  title: https://www.cs.yale.edu/homes/aspnes/pinewiki/Flooding.html
 ---
 ```{r echo=FALSE,results='hide', message=FALSE}
 library(curl)
@@ -188,7 +207,7 @@ results$Shapiro_pi[i]<-temp$p.value
 colnames(results) <- c("Group", "Average Size", "Shapiro p-val")
 results_size <- results
 # The series are not that different
-wt_size_cf <- wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="F"])
+wt_size_cf <- wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="F"]) #to discuss
 wt_size_cn <- wilcox.test(atr_size$val[atr_size$group=="C"],atr_size$val[atr_size$group=="N"])
 wt_size_fn <- wilcox.test(atr_size$val[atr_size$group=="F"],atr_size$val[atr_size$group=="N"])
 ```
@@ -234,7 +253,7 @@ wt_age_fn <- wilcox.test(atr_age$val[atr_age$group=="F"],atr_age$val[atr_age$gro
 The Wilcoxon rank test shows again that there is no difference in mean age between the three groups.
 
 ```{r echo=FALSE}
-knitr::kable(list("Shapiro Tests Age"=results_age, "Shapiro Tests Size"=results_size), caption = "Shapiro Test Results")
+knitr::kable(list("Shapiro Tests Age"=results_age, "Shapiro Tests Size"=results_size), caption = "Shapiro Test Results") #to discuss
 ```
 
 
@@ -671,7 +690,9 @@ As we can see the result is not very accurate. With respect to the minimum geode
 
 In general we can say that the given models do not fit the network very well. We do not show the other models here that were tried but did perform even worse. This could be caused by an unusual behavior of the network. It might be very difficult to find a good fitting model. There seems to be a lot of randomness besides from some structure going on in the network. Even though we could not find a perfect model, the proposed models indicate that the network is very densely connected and that the groups that were found are reasonable.
 
+## Information propagation using flooding
 
+During the project we also wanted to check the speed with which information propagates in the graph. In order to do that we chose a flooding algorithm. This algorithm works by choosing a starting vertex and then considering that that vertex sends a message to all the others it is connected with. At the next step the vertexes that receive the message send it forward in a similar fashion and the process is repeated until all the vertexes have received the messages. After researching the subject we decided against using this approach due to the high connectivity of our graph (there are 99 vertexes and over 3000 edges), which we thought would yield unreliable results. 
 
 # Key points and conclusions
 
@@ -693,7 +714,7 @@ With these results we gave an overview of the selected network. The validation o
 I performed the statistical analysis by group and took care of the main plot of the network. I conducted the different models and analyzed the ER and ERGM models. Additionally, I introduced our main questions.
 
 *Andrei Chirita*:
-I performed the statistical analysis for the whole dataset and took care of the statistical test that determined whether there are differences between groups in regard to age and body size. I also did the k-means model and took care of data description and stating the key points of the project.
+I performed the statistical analysis for the whole dataset and took care of the statistical test that determined whether there are differences between groups in regard to age and body size. I also did the k-means model and took care of data description and stating the key points of the project an the research related to the flooding algorithm.
 
 
 # References
