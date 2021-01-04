@@ -234,8 +234,7 @@ grid.arrange(age_boxplot, age_hist, ncol=2)
 The boxplots show that most ants have similar ages, with the exception of the queen which is much older than the other ants. The groups do not seem to be different in age.
 The histogram shows a pike around the age of 300 days. Most ants are younger than 500 days and they are born in "waves".
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 atr_age<-atr[atr$cathegory=="age",]
 # The series are not normally distributed
 mean_table_age <- aggregate(val~group,data=atr_age,mean)
@@ -499,18 +498,15 @@ We selected the data that will be used for clustering and the auxiliary variable
 
 In addition we also kept the id and the group (decided of the authors of the study) of each ant for validation purposes.
 
-```{r echo=FALSE, fig.width=4, fig.height=2, fig.align='center'}
+```{r echo=TRUE, fig.width=4, fig.height=2, fig.align='center'}
 to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
 models<-lapply(1:10,function(i){kmeans(to_cluster2,i)})
 sum_withinn<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$tot.withinss}))
 sum_withinn<-data.frame(index=1:nrow(sum_withinn),name=rep("withiness",nrow(sum_withinn)),value=sum_withinn)
 sum_between<-do.call(rbind,lapply(1:length(models),function(i){models[[i]]$betweenss}))
 sum_between<-data.frame(index=1:nrow(sum_between),name=rep("betweenes",nrow(sum_between)),value=sum_between)
-#sum_total<-data.frame(index=1:nrow(sum_between),
-#                   name=rep("total error",nrow(sum_between)),
-#                   value=sum_between$value+sum_withinn$value)
 to_plot<-rbind(sum_withinn,sum_between)
-ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()+xlab("Number of Groups")
+ggplot(to_plot)+aes(x=index,y=value,colour=name)+geom_point()+geom_line()+labs(x="Number of Groups", y="Error",title="Decomposition of the Error")
 ```
 
 We first analyzed the within group error of the clustering per number of considered groups and we concluded that as there is no definite point where to make a cut the most suitable number of groups is 3 as it would allow us to compare with the groups fitted by the authors of the study.
@@ -555,7 +551,7 @@ knitr::kable(p_vals, caption = "P-Values for Shapiro-Wilk-Tests")
 
 Thus we decided to focus on simpler models. To conduct the network w.r.t. the three properties clustering coefficient, diameter and average path length, we are using an Erdos-Renyi model. This one showed, compared to the other possible modeling solutions the best results. In an Erdos-Renyi graph is a graph where each pair of nodes is connected independently with probability $p$. It is assumed to be undirected. To create an Erdos-Renyi graph based on our given network we can take two network characteristics into account: The number of nodes $n$ and the proportion of edges $E$ w.r.t. the possible number of edges in the network: $p=\frac{E}{n(n-1)/2}$. With these values we can then create an Erdos-Renyi graph based on $n$ and $p$. For the given network we find $n=99$ and $p=0.689$.
 
-```{r echo=FALSE }
+```{r echo=TRUE }
 set.seed(42)
 e <- ecount(g)
 n <- vcount(g)
@@ -563,7 +559,6 @@ p <- e/(n*(n-1)/2)
 di.g <- diameter(g)
 cl.g <- transitivity(g)
 apl.g <- average.path.length(g)
-
 er.graph=erdos.renyi.game(n,p)
 ```
 
@@ -603,7 +598,7 @@ di.opt <- di[which.min(abs(di[,2]-di.g)),2]
 
 ```
 
-```{r echo=FALSE, fig.width=5, fig.height=2, fig.align='center'}
+```{r echo=FALSE, fig.width=5, fig.height=3, fig.align='center'}
 to_plot<-rbind("Clustering" = cl, "APL"=apl,"Diameter"=di)
 ggplot(to_plot)+aes(x=p,y=values,colour=indicator)+geom_line()+geom_vline(xintercept = 0.689)+
   geom_hline(aes(yintercept = 5,  linetype = "Obs. Diameter"),colour="blue")+
@@ -664,12 +659,11 @@ library(ergm)
 library(intergraph)
 
 g.network <- asNetwork(g)
-edge.indep <- ergm(g.network ~ edges) 
 ```
 
-```{r echo=FALSE, message=FALSE, results='hide'}
+```{r echo=TRUE, message=FALSE, results='hide'}
+edge.indep <- ergm(g.network ~ edges) 
 indep.summary <- summary(edge.indep)
-#edge.indep$coef[1]
 plogis(coef(edge.indep))
 # Nodes have a 68.9% chance of being connected
 ```
@@ -677,10 +671,9 @@ plogis(coef(edge.indep))
 The probability for an edge between two nodes regardless of their attributes is $0.689$. This is exactly the same as we found earlier.
 
 If we now introduce the attribute *group* and check for the matching probability we find $0.88$ for the tie probability between two nodes with the same group.
-```{r echo=FALSE, message=FALSE, results='hide'}
+```{r echo=TRUE, message=FALSE, results='hide'}
 edge.group <- ergm(g.network ~ edges + nodematch("group")) 
 group.summary <- summary(edge.group)
-
 plogis(coef(edge.group)[1] + coef(edge.group)[2])
 # Nodes of the same group have a 88% chance of being connected
 ```
@@ -692,7 +685,7 @@ This means that nodes who have the same group have a much higher probability of 
 #gof.edge.group=gof(edge.group)
 #plot(gof.edge.group)
 ```
-![Goodness of fit](gof.png){width=80%}
+![](gof.png)
 
 As we can see the result is not very accurate. With respect to the minimum geodesic distance we find a fit that is okay. But for the degree and edge-wise shared partners the model does not fit the data very well. Therefore, we need to be careful with interpreting this model as well. Nevertheless, we can state that we find a similar tendency like the authors of the paper did. Ants of the same group have a higher chance of a tie.
 
