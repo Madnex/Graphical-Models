@@ -229,7 +229,7 @@ age_boxplot <- ggplot(atr[atr$category=="age",])+aes(x=group,y=val)+geom_boxplot
 age_boxplot <- age_boxplot + labs(x="Group", y="Age (days)",title="Boxplot of Age")
 
 age_hist <- ggplot(atr[atr$category=="age",])+aes(x=val)+geom_histogram(binwidth=10)
-age_hist <- age_hist + labs(x="Age (days)", y="Count",title="Boxplot of Age")
+age_hist <- age_hist + labs(x="Age (days)", y="Count",title="Histogram of Age")
 
 grid.arrange(age_boxplot, age_hist, ncol=2)
 
