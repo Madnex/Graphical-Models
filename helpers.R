@@ -3,6 +3,7 @@
 library(curl)
 library(igraph)
 
+# To load the data sets from the repository
 get_data_from_repo <- function(colony=1, days=1:41){
   for(i in days){
     selection <- paste("col", colony , "_day", formatC(i, width = 2, flag = 0), sep = "")
@@ -13,6 +14,7 @@ get_data_from_repo <- function(colony=1, days=1:41){
   }
 }
 
+# Create a graph object from the input
 get_graph <- function(colony=1, day=4){
   selection <- paste("col", colony, "_day", formatC(day, width = 2, flag = 0), sep = "")
   dest <- paste("Data/", selection, ".graphml", sep = "")
@@ -24,6 +26,8 @@ get_graph <- function(colony=1, day=4){
   return(g)
 }
 
+# Assign the group fitting to the period
+# Group corresponds to 1: days 1-10, 2: days 11-20, 3: days 21-30, 4: days 31-41
 get_group <- function(g){
   day <- g$day
   if(day <= 11){

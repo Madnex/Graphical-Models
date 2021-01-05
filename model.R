@@ -1,8 +1,14 @@
 source("helpers.R")
 
+##############################
+# Different Models that were tried during the analysis
+###############################
+
 # Fixed for colony 1 and day 17
 g <- get_graph(colony=1, day=17)
 
+
+# Erdös-Renyi
 set.seed(42)
 e <- ecount(g)
 n <- vcount(g)

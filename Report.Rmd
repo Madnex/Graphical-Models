@@ -40,8 +40,11 @@ references:
     year: 2002
 - id: floodinglink
   title: Flooding
-  url: https://www.cs.yale.edu/homes/aspnes/pinewiki/Flooding.html
+  URL: 'https://www.cs.yale.edu/homes/aspnes/pinewiki/Flooding.html'
+  issued: 
+    -year: 2020
 ---
+\pagenumbering{gobble}
 ```{r echo=FALSE,results='hide', message=FALSE}
 library(curl)
 library(igraph)
@@ -53,6 +56,7 @@ library(DT)
 ```
 \newpage
 \setcounter{tocdepth}{2}
+\pagenumbering{arabic}
 \tableofcontents
 \newpage
 
@@ -62,7 +66,7 @@ Ant colonies have a complex and fascinating social structure that may bring answ
 
 ## The Data
 
-The original data of the study consist of more than 9 million observed interactions between ants collected for 41 days from ants belonging to 6 colonies. For our project we decided to work on a specific graph for a given day and network. Our random choice was day 17 and colony 1. All following work will be based on this sample graph and thus only, represents a small example of the whole experiment.
+The original data of the study consist of more than 9 million observed interactions between ants collected for 41 days from ants belonging to 6 colonies. For our project we decided to work on a specific graph for a given day and network. Our random choice was day 17 and colony 1. All following work will be based on this sample graph and thus, only represents a small example of the whole experiment.
 
 ### Preliminary Data Exploration
 
@@ -133,13 +137,13 @@ foragers <- induced_subgraph(g, which(V(g)$group=="F"))
 nurses <- induced_subgraph(g, which(V(g)$group=="N"))
 cleaners <- induced_subgraph(g, which(V(g)$group=="C"))
 
-groups <- list(Foragers=foragers, Nurses=nurses, Cleaners=cleaners)
+groups <- list(Cleaners=cleaners, Foragers=foragers, Nurses=nurses)
 
 par(mfrow=c(1,3))
-
+colors_ <- categorical_pal(5)[2:4]
 tmp <- lapply(seq_along(groups), function(u){
   degs <- rescale(degree(groups[[u]]), c(0,1))
-  plot(groups[[u]], main = paste(names(groups)[u]), vertex.label=NA, vertex.size = degs * 13, vertex.color="white")
+  plot(groups[[u]], main = paste(names(groups)[u]), vertex.label=NA, vertex.size = degs * 13, vertex.color=colors_[u])
   })
 ```
 
@@ -157,11 +161,11 @@ We will first explore the network in a descriptive manner. This includes charact
 
 #  Descriptive Statistics of the Network
 
-As we noted above the data we are going to use for our analysis refers to the movements of the ants of the first colony in day 17 of the study. Thus the graph has 99 vertices and 3342 edges. We must also note that the graph is connected.
+As we noted above the data we are going to use for our analysis refers to the movements of the ants of the first colony in day 17 of the study. The graph has 99 vertices and 3342 edges. We must also note that the graph is connected.
 
 ## Statistics of Attributes
 
-As mentioned before, there are several attributes that describe each ant. In the following sub-section we will analyze two of those, namely the age and the body size of the ant and then we will highlight differences in regard to this attributes for each category of ants (as defined by the authors of the study).
+As mentioned before, there are several attributes that describe each ant. In the following sub-section we will analyze two of those, namely the age and the body size of the ant and then we will highlight differences in regard to these attributes for each category of ants (as defined by the authors of the study).
 
 ```{r echo=FALSE, results='hide'}
 # Here we select and transform the relevant variables into a data frame 
@@ -216,7 +220,7 @@ wt_size_fn <- wilcox.test(atr_size$val[atr_size$group=="F"],atr_size$val[atr_siz
 ```
 
 
-As the data for body size for ants in groups C and F is not normally distributed we preferred to use the Wilcoxon rank sum exact test in order to check whether there is any difference between the means of the body sizes of the three groups. As the results of the test yields p-values way above 0.05 we can conclude that the three groups have roughtly equal body sizes.
+As the data for body size for ants in groups C and F is not normally distributed (see Table 1) we preferred to use the Wilcoxon rank sum exact test in order to check whether there is any difference between the means of the body sizes of the three groups. As the results of the test yields p-values way above 0.05 we can conclude that the three groups have roughly equal body sizes.
 
 ### Age
 
@@ -232,7 +236,7 @@ grid.arrange(age_boxplot, age_hist, ncol=2)
 ```
 
 
-The boxplots show that most ants have similar ages, with the exception of the queen which is much older than the other ants. The groups do not seem to be different in age.
+The boxplots show that most ants have similar ages, with the exception of the queen which is much older than the other ants. The groups do not seem to be that different in age. However, we can note a small tendency of nurses being a bit younger ants, yet all groups overlap a lot.
 The histogram shows a pike around the age of 300 days. Most ants are younger than 500 days and they are born in "waves".
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
@@ -257,7 +261,7 @@ The Wilcoxon rank test shows again that there is no difference in mean age betwe
 
 ```{r echo=FALSE }
 knitr::kable(list("Shapiro Tests Age"=results_age, "Shapiro Tests Size"=results_size),
-             caption = "Shapiro Test Results")
+             caption = "Shapiro Test Results (normality thesis)")
 ```
 
 
@@ -347,7 +351,7 @@ grid.arrange(plot_deg_cent, plot_closeness_cent, plot_betweenness_cent, plot_ev_
 In regard to betweenness centrality we can observe that one ant ranks far over the others, thus we can conclude that there is one ant that has a very central role in the network a conclusion we couldn't draw based on the other measures of centrality.
 
 
-The eigenvalue centrality presents a decreasing structure although it is a smoother decrease compared to the one of the betweenness centrality, in this case we can find no node that is much more "central" that the others.
+The eigenvalue centrality presents a decreasing structure although it is a smoother decrease compared to the one of the betweenness centrality, in this case we can find no node that is much more "central" than the others.
 
 The page rank of the nodes of the graph presents a structure in which there are several dominating nodes that have a much higher rank than the others.
 
@@ -365,7 +369,7 @@ transitivity(g)
 
 Before looking at the following summary statistics per group it is important to know about the size of each group. There are 50 ants in the group foragers, 27 cleaners and 18 are nurses. This means the following results need to be considered under the fact of this unequal distribution of group members.
 
-### Histogram and Density
+### Degree Histogram and Boxplot
 
 The foragers have a rather wider spread of degrees compared to the other two groups. Most of them have a degree greater than 40. The other two groups are distributed very homogeneously. It is notable though that there is a hierarchy of degrees starting from the low degree group of nurses to the mid-range group of cleaners over to the higher degree group of foragers.
 
@@ -375,7 +379,7 @@ tmp <- lapply(names(groups), function(u) hist(degree(groups[[u]]), freq = FALSE,
                                        main = paste("Histogram of", u), xlab = "Degree"))
 ```
 
-```{r, echo=FALSE, fig.width=7,fig.height=2}
+```{r, echo=FALSE, fig.width=7,fig.height=2, include=FALSE}
 tmp <- lapply(seq_along(groups), function(u){
   deg_dist <- data.frame(value = degree_distribution(groups[[u]]), deg=1:(max(degree(groups[[u]]))+1))
   p <- ggplot(deg_dist) + aes(x=deg, y=value) + geom_point()
@@ -384,6 +388,12 @@ tmp <- lapply(seq_along(groups), function(u){
 })
 grid.arrange(tmp[[1]], tmp[[2]], tmp[[3]], ncol=3)
 ```
+
+The boxplot reveals that the groups have a very different degree distribution. Now we can see in detail that nurses have very low degrees while foragers are having very high degrees while cleaners are in between. This indicates a very good separation by group.
+```{r echo=FALSE, fig.width=4, fig.height=3, fig.align='center'}
+boxplot(lapply(groups, degree), ylab="Degree", main="Degree by Group")
+```
+
 
 
 ### Connectivity and Components
@@ -501,7 +511,7 @@ We selected the data that will be used for clustering and the auxiliary variable
 
 * The foraging events
 
-In addition we also kept the id and the group (decided of the authors of the study) of each ant for validation purposes.
+In addition we also kept the id and the group (assigned by the authors of the study) of each ant for validation purposes.
 
 ```{r echo=TRUE, fig.width=4, fig.height=2, fig.align='center'}
 to_cluster2<-scale(to_cluster[,3:ncol(to_cluster)])
@@ -528,12 +538,14 @@ tab <- table(to_cluster3$group,to_cluster3$found_labels)
 knitr::kable(tab, caption = "Clustering result")
 ```
 
-The results of the k-means clustering were quite underwhelming as the model did not fit groups close to those fitted by the authors of the study. The clustering faze was just a first look we will proceed to use graph-specific statistical models that will allow us to have a more conclusive conclusions weather the results of the study can be validated or not. 
+The results of the k-means clustering were quite underwhelming as the model did not fit groups close to those fitted by the authors of the study. The clustering phase was just a first look we will proceed to use graph-specific statistical models that will allow us to have a more conclusive conclusions whether the results of the study can be validated or not. 
 
 # Modeling
 
 To get some more insights into how the network is organized and to understand the underlying creating behavior of the network we can try to model it. There are several ways of modeling a network. We will focus on random networks and exponential random graph models (ERGMs).
-However, we considered other network models as well but they depend on restrictions which are not fulfilled in this network. This includes exemplary the normality assumption for correlation networks and gaussian graphical models. Correlation networks are based on the attributes of the network. If the correlation between two nodes and their corresponding attributes is high, we expect an edge between them. The attributes are assumed to be normally distributed. As one can see in the following plot this assumption can not hold very much. Additionally, a Shapiro-Wilk-Tests showed that none of the attributes are distributed normally. 
+However, we considered other network models as well but they depend on restrictions which are not fulfilled in this network. This includes exemplary the normality assumption for correlation networks and gaussian graphical models. 
+
+Correlation networks are based on the attributes of the network. If the correlation between two nodes and their corresponding attributes is high, we expect an edge between them. The attributes are assumed to be normally distributed. As one can see in the following plot this assumption can not hold very much. Additionally, a Shapiro-Wilk-Tests showed that none of the attributes are distributed normally. 
 
 ```{r echo=FALSE, fig.width=4, fig.height=3, fig.align='center'}
 g.size <- V(g)$body_size
@@ -559,7 +571,7 @@ knitr::kable(p_vals, caption = "P-Values for Shapiro-Wilk-Tests")
 
 ## Erdos-Renyi
 
-Thus we decided to focus on simpler models. To conduct the network w.r.t. the three properties clustering coefficient, diameter and average path length, we are using an Erdos-Renyi model. This one showed, compared to the other possible modeling solutions the best results. In an Erdos-Renyi graph is a graph where each pair of nodes is connected independently with probability $p$. It is assumed to be undirected. To create an Erdos-Renyi graph based on our given network we can take two network characteristics into account: The number of nodes $n$ and the proportion of edges $E$ w.r.t. the possible number of edges in the network: $p=\frac{E}{n(n-1)/2}$. With these values we can then create an Erdos-Renyi graph based on $n$ and $p$. For the given network we find $n=99$ and $p=0.689$.
+Thus, we decided to focus on simpler models. To conduct the network w.r.t. the three properties clustering coefficient, diameter and average path length, we are using an Erdos-Renyi model. This one showed, compared to the other possible modeling solutions the best results. An Erdos-Renyi graph is a graph where each pair of nodes is connected independently with probability $p$. It is assumed to be undirected. To create an Erdos-Renyi graph based model on our given network we can take two network characteristics into account: The number of nodes $n$ and the proportion of edges $E$ w.r.t. the possible number of edges in the network: $p=\frac{E}{n(n-1)/2}$. With these values we can then create an Erdos-Renyi graph based model on $n$ and $p$. For the given network we find $n=99$ and $p=0.689$.
 
 ```{r echo=TRUE }
 set.seed(42)
@@ -621,7 +633,7 @@ ggplot(to_plot)+aes(x=p,y=values,colour=indicator)+geom_line()+geom_vline(xinter
 ```
 
 
-We see then, that we get three different values for $p$ depending of the criterion on which we try to optimize $p$. If we look at the clustering coefficient we find $p=0.8$ to be the closest to the original network's clustering coefficient. In contrast we find $p=0.7$ for the average path length and $p=0.1$ for the diameter. We can observe that the chosen $p=0.689$ is somehow close to the ones for the average path length and the diameter. We note in particular that the diameter behaves quite differently for varying $p$ compared to the other two properties. In order to get a high diameter we need to have a very small $p$. In contrast to that the other two properties seem to fit quite well with the original network and it's value of $p$.
+We see then, that we get three different values for $p$ depending on the criterion on which we try to optimize $p$. If we look at the clustering coefficient we find $p=0.8$ to be the closest to the original network's clustering coefficient. In contrast we find $p=0.7$ for the average path length and $p=0.1$ for the diameter. We can observe that the chosen $p=0.689$ is somehow close to the ones for the average path length and the diameter. We note in particular that the diameter behaves quite differently for varying $p$ compared to the other two properties. In order to get a high diameter we need to have a very small $p$. In contrast to that the other two properties seem to fit quite well with the original network and it's value of $p$.
 
 
 Additionally, we can do a monte carlo simulation to check if it is probable that our observed network is coming from this distribution.
@@ -689,7 +701,7 @@ plogis(coef(edge.group)[1] + coef(edge.group)[2])
 ```
 
 
-This means that nodes who have the same group have a much higher probability of having a tie: $p=0.88$. This confirms what was found in the paper. To check the validity of the model we can check the goodness of fit.
+This means that nodes who have the same group have a much higher probability of having a tie: $p=0.88$. This confirms what was found in the paper and suggests the fidelity of the assigned groups. To check the validity of the model we can check the goodness of fit.
 
 ```{r include=FALSE}
 #gof.edge.group=gof(edge.group)
@@ -703,13 +715,13 @@ In general we can say that the given models do not fit the network very well. We
 
 ## Information Propagation Using Flooding
 
-During the project we also wanted to check the speed with which information propagates in the graph. In order to do that we chose a flooding algorithm. This algorithm works by choosing a starting vertex and then considering that that vertex sends a message to all the others it is connected with. At the next step the vertexes that receive the message send it forward in a similar fashion and the process is repeated until all the vertexes have received the messages. After researching the subject we decided against using this approach due to the high connectivity of our graph (there are 99 vertexes and over 3000 edges), which we thought would yield unreliable results. For understanding the topic we used two sources: [@floodingpaper] and [@floodinglink]
+During the project we also wanted to check the speed with which information propagates in the graph. In order to do that we chose a flooding algorithm. This algorithm works by choosing a starting vertex and then considering that that vertex sends a message to all the others it is connected with. At the next step the vertices that receive the message send it forward in a similar fashion and the process is repeated until all the vertices have received the messages. After researching the subject we decided against using this approach due to the high connectivity of our graph (there are 99 vertices and over 3000 edges), which we thought would yield unreliable results. For understanding the topic we used two sources: [@floodingpaper] and [@floodinglink]
 
 # Key Points and Conclusions
 
 ### Key Points
 
-In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied varied methods before that we decided to check the characteristics of the vertices. During that phase we found the main characteristics included by the data, created plots and did statistical testing on them in order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our project we created a k-means model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models. The Erdos-Renyi random graph model produced results quite close to those of the original graph we analyzed. After a first check we implemented a grid-search algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph. Then we did a Monte Carlo Simulation in order to determine if our network can be considered a random graph. The results show that it is a random graph though one imperfect w.r.t the properties clustering coefficient and diameter. In this case a further modeling of the graph is required, thus we tried to use exponential random graph models which yielded mixed results.
+In our project we tried to check the results of a graph-based experiment on ant behavior. In order to do that we applied various methods before that we decided to check the characteristics of the vertices. During that phase we found the main characteristics included by the data, created plots and did statistical testing on them in order to be able to tell if the groups fitted by the authors of the original study were different from each other. In the next phase we described the structure of the graph and the sub-graphs defined by the groups by applying measures of node centrality and verifying the distribution of the degrees of the nodes. In the third phase of our project we created a k-means model in order to check if we can find the fitted groups by using only the vertex attributes. The next phase was dedicated to graph specific models. On that part of the project we mainly focused on two models. The Erdos-Renyi random graph model produced results quite close to those of the original graph we analyzed. After a first check we implemented a grid-search algorithm in order to determine the optimal values of the main parameters of the Erdos-Renyi random graph. Then we did a Monte Carlo Simulation in order to determine if our network can be considered a random graph. The results show that it could be a random graph though one imperfect w.r.t the properties clustering coefficient and diameter. In this case a further modeling of the graph is required, thus we tried to use exponential random graph models which yielded mixed results.
 
 ### Conclusions
 
@@ -722,7 +734,7 @@ With these results we gave an overview of the selected network. The validation o
 # Statement of Division of Labor
 
 *Jan Lennartz*: 
-I performed the statistical analysis by group and took care of the main plot of the network. I conducted the different models and analyzed the ER and ERGM models. Additionally, I introduced our main questions.
+I performed the statistical analysis by group and took care of the main plot of the network. I conducted the different models and analyzed the ER and ERGM models. Additionally, I introduced our main questions, researched the data and prepared the data (helpers.R).
 
 *Andrei Chirita*:
 I performed the statistical analysis for the whole dataset and took care of the statistical test that determined whether there are differences between groups in regard to age and body size. I also did the k-means model and took care of data description and stating the key points of the project an the research related to the flooding algorithm.
